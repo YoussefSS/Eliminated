@@ -22,17 +22,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UFUNCTION()
-	void MousePitchInput(float Val);
 
-	UFUNCTION()
+	void MousePitchInput(float Val);
 	void MouseYawInput(float Val);
 
-	UFUNCTION()
 	void MoveForward(float Val);
-
-	UFUNCTION()
 	void MoveRight(float Val);
+
+	virtual void Jump() override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
