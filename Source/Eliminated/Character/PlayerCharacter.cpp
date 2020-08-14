@@ -26,7 +26,6 @@ APlayerCharacter::APlayerCharacter()
 	bUseControllerRotationRoll = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 	GetCharacterMovement()->AirControl = 0.2f;
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 }
@@ -50,34 +49,12 @@ void APlayerCharacter::MouseYawInput(float Val)
 
 void APlayerCharacter::MoveForward(float Val)
 {
-	if (FMath::IsNearlyEqual(Val, 0)) return;
-	
-	// Getting movement direction
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-	// Getting movement speed
-	float MoveSpeed = bIsSprinting ? Val * SprintMultiplier : Val * WalkMultiplier;
-
-
-	AddMovementInput(Direction, MoveSpeed);
+	MoveForwardAxisVal = Val;
 }
 
 void APlayerCharacter::MoveRight(float Val)
 {
-	if (FMath::IsNearlyEqual(Val, 0)) return;
-
-	// Getting movement direction
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y); // Find out which way is right
-
-	// Getting movement speed
-	float MoveSpeed = bIsSprinting ? Val * SprintMultiplier : Val * WalkMultiplier;
-
-
-	AddMovementInput(Direction, MoveSpeed);
+	MoveRightAxisVal = Val;
 }
 
 void APlayerCharacter::Jump()
@@ -102,13 +79,38 @@ void APlayerCharacter::UpdateRotationRate()
 	{
 		if (GetCharacterMovement()->IsFalling())
 		{
-			GetCharacterMovement()->RotationRate = FRotator(0.f, 100.f, 0.f);
+			GetCharacterMovement()->RotationRate = FRotator(0.f, CharacterRotationRateFalling, 0.f);
 		}
 		else
 		{
-			GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
+			GetCharacterMovement()->RotationRate = FRotator(0.f, CharacterRotationRateWalk, 0.f);
 		}
 	}
+}
+
+void APlayerCharacter::UpdateMovementAxisInput()
+{
+	// If both axis values are zero
+	if (FMath::IsNearlyZero(MoveForwardAxisVal) && FMath::IsNearlyZero(MoveRightAxisVal)) return;
+
+	// Getting movement direction
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y); // Find out which way is right
+
+	// Getting movement speed
+	float MoveSpeedForward = bIsSprinting ? (MoveForwardAxisVal * SprintMultiplier) : (MoveForwardAxisVal * WalkMultiplier);
+	float MoveSpeedRight = bIsSprinting ? (MoveRightAxisVal * SprintMultiplier) : (MoveRightAxisVal * WalkMultiplier);
+
+	/* Combining both movement inputs so that diagonal movement doesn't become faster than horizontal/vertical movement */
+	if (FMath::IsNearlyEqual(FMath::Abs(MoveSpeedForward), FMath::Abs(MoveSpeedRight))) // If both axis are equal
+	{
+		MoveSpeedForward *= 0.71f;
+		MoveSpeedRight *= 0.71f;
+	}
+	AddMovementInput(ForwardDirection, MoveSpeedForward);
+	AddMovementInput(RightDirection, MoveSpeedRight);
 }
 
 // Called every frame
@@ -117,10 +119,8 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdateRotationRate();
-
+	UpdateMovementAxisInput();
 }
-
-
 
 // Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

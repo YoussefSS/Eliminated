@@ -27,7 +27,9 @@ protected:
 	void MouseYawInput(float Val);
 
 	void MoveForward(float Val);
+	float MoveForwardAxisVal = 0;
 	void MoveRight(float Val);
+	float MoveRightAxisVal = 0;
 
 
 	virtual void Jump() override;
@@ -37,6 +39,7 @@ protected:
 	bool bIsSprinting;
 
 	void UpdateRotationRate();
+	void UpdateMovementAxisInput();
 
 public:	
 	// Called every frame
@@ -46,9 +49,14 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement | No Weapon")
-	float WalkMultiplier = 0.5f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement | No Weapon")
-	float SprintMultiplier = 1.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement | No Weapon")
+	float WalkMultiplier = 0.33f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement | No Weapon")
+	float SprintMultiplier = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "540.0", UIMin = "0.0", UIMax = "540.0"), Category = "Movement | No Weapon")
+	float CharacterRotationRateWalk = 540.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "540.0", UIMin = "0.0", UIMax = "540.0"), Category = "Movement | No Weapon")
+	float CharacterRotationRateFalling = 100.0f;
 
 };
