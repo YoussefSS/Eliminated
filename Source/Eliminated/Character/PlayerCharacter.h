@@ -29,7 +29,14 @@ protected:
 	void MoveForward(float Val);
 	void MoveRight(float Val);
 
+
 	virtual void Jump() override;
+
+	void StartSprint();
+	void StopSprint();
+	bool bIsSprinting;
+
+	void UpdateRotationRate();
 
 public:	
 	// Called every frame
@@ -37,5 +44,11 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement | No Weapon")
+	float WalkMultiplier = 0.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement | No Weapon")
+	float SprintMultiplier = 1.f;
 
 };

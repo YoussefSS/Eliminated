@@ -28,6 +28,7 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 	GetCharacterMovement()->AirControl = 0.2f;
+	GetCharacterMovement()->JumpZVelocity = 500.f;
 }
 
 // Called when the game starts or when spawned
@@ -49,23 +50,34 @@ void APlayerCharacter::MouseYawInput(float Val)
 
 void APlayerCharacter::MoveForward(float Val)
 {
+	if (FMath::IsNearlyEqual(Val, 0)) return;
 	
-	// Find out which way is forward
+	// Getting movement direction
 	const FRotator Rotation = Controller->GetControlRotation();
 	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-
 	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	AddMovementInput(Direction, Val);
+
+	// Getting movement speed
+	float MoveSpeed = bIsSprinting ? Val * SprintMultiplier : Val * WalkMultiplier;
+
+
+	AddMovementInput(Direction, MoveSpeed);
 }
 
 void APlayerCharacter::MoveRight(float Val)
 {
-	// Find out which way is right
+	if (FMath::IsNearlyEqual(Val, 0)) return;
+
+	// Getting movement direction
 	const FRotator Rotation = Controller->GetControlRotation();
 	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y); // Find out which way is right
 
-	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-	AddMovementInput(Direction, Val);
+	// Getting movement speed
+	float MoveSpeed = bIsSprinting ? Val * SprintMultiplier : Val * WalkMultiplier;
+
+
+	AddMovementInput(Direction, MoveSpeed);
 }
 
 void APlayerCharacter::Jump()
@@ -73,12 +85,42 @@ void APlayerCharacter::Jump()
 	Super::Jump();
 }
 
+void APlayerCharacter::StartSprint()
+{
+	bIsSprinting = true;
+}
+
+void APlayerCharacter::StopSprint()
+{
+	bIsSprinting = false;
+}
+
+void APlayerCharacter::UpdateRotationRate()
+{
+	// Limit rotation while falling/jumping
+	if (GetCharacterMovement())
+	{
+		if (GetCharacterMovement()->IsFalling())
+		{
+			GetCharacterMovement()->RotationRate = FRotator(0.f, 100.f, 0.f);
+		}
+		else
+		{
+			GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
+		}
+	}
+}
+
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateRotationRate();
+
 }
+
+
 
 // Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -92,5 +134,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
 
 	PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &APlayerCharacter::Jump);
+
+	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartSprint);
+	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &APlayerCharacter::StopSprint);
 }
 
