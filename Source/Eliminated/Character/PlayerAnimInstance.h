@@ -4,8 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+
+#include "Eliminated\Character\PlayerCharacter.h" // TODO: Low Pri: remove this include
+
 #include "PlayerAnimInstance.generated.h"
 
+
+
+enum class EMovementStatus : uint8;
 /** Update animation properties in this class for the animation asset to see
  * 
  */
@@ -25,8 +31,16 @@ public:
     class APlayerCharacter* PlayerCharacter;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
-    float MovementSpeed;
+    float MovementSpeedTotal;
+    
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
+	float Direction;
+
+
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
     bool bIsInAir;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
+    EMovementStatus MovementStatus;
 };

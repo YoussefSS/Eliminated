@@ -17,10 +17,14 @@ void UPlayerAnimInstance::UpdateAnimationProperties()
 	if(PlayerCharacter)
 	{
 		FVector Speed = PlayerCharacter->GetVelocity();
+
+		Direction = CalculateDirection(Speed, PlayerCharacter->GetActorRotation());
+
 		FVector LateralSpeed = FVector(Speed.X, Speed.Y, 0);
-		MovementSpeed = LateralSpeed.Size();
+		MovementSpeedTotal = LateralSpeed.Size();
 
 		bIsInAir = PlayerCharacter->GetCharacterMovement()->IsFalling();
+		MovementStatus = PlayerCharacter->GetMovementStatus();
 	}
 	else
 	{

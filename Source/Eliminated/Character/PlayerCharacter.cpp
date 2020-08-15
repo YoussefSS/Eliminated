@@ -21,7 +21,7 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 
-	bUseControllerRotationYaw = false; // Might want to set this to true when aiming down sights and orientrotationtomovement to false
+	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 
@@ -35,6 +35,8 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GetCharacterMovement()->RotationRate = FRotator(0.f, CharacterRotationRateWalk, 0.f);
+
 }
 
 void APlayerCharacter::MousePitchInput(float Val)
@@ -72,6 +74,21 @@ void APlayerCharacter::StopSprint()
 	bIsSprinting = false;
 }
 
+void APlayerCharacter::StartAimDownSights_Implementation() // Implementation for C++ method (can be overriden in BP)
+{
+	bUseControllerRotationYaw = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	MovementStatus = EMovementStatus::EMS_Pistol;
+}
+
+void APlayerCharacter::StopAimDownSights_Implementation()
+{
+	//CameraArm->TargetArmLength = 600.f;
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	MovementStatus = EMovementStatus::EMS_NoWeapon;
+}
+
 void APlayerCharacter::UpdateRotationRate()
 {
 	// Limit rotation while falling/jumping
@@ -100,6 +117,25 @@ void APlayerCharacter::UpdateMovementAxisInput()
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y); // Find out which way is right
 
 	// Getting movement speed
+	float WalkMultiplier;
+	float SprintMultiplier;
+	switch (MovementStatus)
+	{
+	case EMovementStatus::EMS_NoWeapon: 
+		WalkMultiplier = WalkMultiplier_NoWeapon;
+		SprintMultiplier = SprintMultiplier_NoWeapon;
+		break;
+	case EMovementStatus::EMS_Pistol:
+		WalkMultiplier = WalkMultiplier_AimDownSight;
+		SprintMultiplier = SprintMultiplier_AimDownSight;
+		break;
+	case EMovementStatus::EMS_MAX:
+	default:
+		WalkMultiplier = 0;
+		SprintMultiplier = 0;
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UpdateMovementAxisInput: Reached default case"));
+		break;
+	}
 	float MoveSpeedForward = bIsSprinting ? (MoveForwardAxisVal * SprintMultiplier) : (MoveForwardAxisVal * WalkMultiplier);
 	float MoveSpeedRight = bIsSprinting ? (MoveRightAxisVal * SprintMultiplier) : (MoveRightAxisVal * WalkMultiplier);
 
@@ -137,5 +173,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartSprint);
 	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &APlayerCharacter::StopSprint);
+
+	PlayerInputComponent->BindAction("AimDownSights", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartAimDownSights);
+	PlayerInputComponent->BindAction("AimDownSights", EInputEvent::IE_Released, this, &APlayerCharacter::StopAimDownSights);
 }
 
