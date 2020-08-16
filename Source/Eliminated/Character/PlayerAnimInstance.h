@@ -36,11 +36,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
 	float Direction;
 
-
+    // Set this in BP
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationProperties")
+    float DeltaTimeFromBP;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
     bool bIsInAir;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
     EPlayerStatus PlayerStatus;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
+    float AimPitch;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
+	float AimYaw;
 };
