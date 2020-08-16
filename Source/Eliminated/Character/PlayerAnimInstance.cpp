@@ -24,7 +24,7 @@ void UPlayerAnimInstance::UpdateAnimationProperties()
 		MovementSpeedTotal = LateralSpeed.Size();
 
 		bIsInAir = PlayerCharacter->GetCharacterMovement()->IsFalling();
-		MovementStatus = PlayerCharacter->GetMovementStatus();
+		PlayerStatus = PlayerCharacter->GetMovementStatus();
 	}
 	else
 	{

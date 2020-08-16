@@ -11,7 +11,7 @@
 
 
 
-enum class EMovementStatus : uint8;
+enum class EPlayerStatus : uint8;
 /** Update animation properties in this class for the animation asset to see
  * 
  */
@@ -42,5 +42,5 @@ public:
     bool bIsInAir;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
-    EMovementStatus MovementStatus;
+    EPlayerStatus PlayerStatus;
 };

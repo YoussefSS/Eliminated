@@ -7,7 +7,7 @@
 #include "PlayerCharacter.generated.h"
 
 UENUM(BlueprintType)
-enum class EMovementStatus : uint8
+enum class EPlayerStatus : uint8
 {
 	EMS_NoWeapon    UMETA(DisplayName = "NoWeapon"),
 	EMS_Pistol		UMETA(DisplayName = "Pistol"),
@@ -16,6 +16,7 @@ enum class EMovementStatus : uint8
 };
 
 
+class AWeapon;
 UCLASS()
 class ELIMINATED_API APlayerCharacter : public ACharacter
 {
@@ -65,13 +66,25 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	FORCEINLINE EMovementStatus GetMovementStatus() { return MovementStatus; }
+	FORCEINLINE EPlayerStatus GetMovementStatus() { return PlayerStatus; }
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
-	EMovementStatus MovementStatus = EMovementStatus::EMS_NoWeapon;
+	void DisableCurrentWeapon();
+	void EnablePistol();
 
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
+	AWeapon* CurrentWeapon;
+
+	/** PISTOL */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf <AWeapon> PistolClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	FName PistolAttachSocketName = "PistolSocket";
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	AWeapon* Pistol;
 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "540.0", UIMin = "0.0", UIMax = "540.0"), Category = "Movement")
@@ -98,7 +111,8 @@ protected:
 	FVector SpringArmCameraOffset_AimDownSight;
 
 
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	EPlayerStatus PlayerStatus = EPlayerStatus::EMS_NoWeapon;
 
 
 

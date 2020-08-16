@@ -5,6 +5,9 @@
 #include "GameFramework\SpringArmComponent.h"
 #include "Camera\CameraComponent.h"
 #include "GameFramework\CharacterMovementComponent.h"
+#include "Eliminated\Items\Weapon.h"
+#include "Engine\World.h"
+#include "Components\SkeletalMeshComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -25,9 +28,12 @@ APlayerCharacter::APlayerCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->AirControl = 0.2f;
-	GetCharacterMovement()->JumpZVelocity = 500.f;
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->AirControl = 0.2f;
+		GetCharacterMovement()->JumpZVelocity = 500.f;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -78,7 +84,10 @@ void APlayerCharacter::StartAimDownSights_Implementation() // Implementation for
 {
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	MovementStatus = EMovementStatus::EMS_Pistol;
+
+	PlayerStatus = EPlayerStatus::EMS_Pistol;
+
+	EnablePistol();
 }
 
 void APlayerCharacter::StopAimDownSights_Implementation()
@@ -86,7 +95,10 @@ void APlayerCharacter::StopAimDownSights_Implementation()
 	//CameraArm->TargetArmLength = 600.f;
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	MovementStatus = EMovementStatus::EMS_NoWeapon;
+
+	PlayerStatus = EPlayerStatus::EMS_NoWeapon;
+
+	DisableCurrentWeapon();
 }
 
 void APlayerCharacter::UpdateRotationRate()
@@ -119,17 +131,17 @@ void APlayerCharacter::UpdateMovementAxisInput()
 	// Getting movement speed
 	float WalkMultiplier;
 	float SprintMultiplier;
-	switch (MovementStatus)
+	switch (PlayerStatus)
 	{
-	case EMovementStatus::EMS_NoWeapon: 
+	case EPlayerStatus::EMS_NoWeapon: 
 		WalkMultiplier = WalkMultiplier_NoWeapon;
 		SprintMultiplier = SprintMultiplier_NoWeapon;
 		break;
-	case EMovementStatus::EMS_Pistol:
+	case EPlayerStatus::EMS_Pistol:
 		WalkMultiplier = WalkMultiplier_AimDownSight;
 		SprintMultiplier = SprintMultiplier_AimDownSight;
 		break;
-	case EMovementStatus::EMS_MAX:
+	case EPlayerStatus::EMS_MAX:
 	default:
 		WalkMultiplier = 0;
 		SprintMultiplier = 0;
@@ -178,3 +190,30 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("AimDownSights", EInputEvent::IE_Released, this, &APlayerCharacter::StopAimDownSights);
 }
 
+void APlayerCharacter::DisableCurrentWeapon()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->DisableWeapon();
+	}
+	CurrentWeapon = nullptr;
+}
+
+void APlayerCharacter::EnablePistol()
+{
+	if (Pistol)
+	{
+		CurrentWeapon = Pistol;
+		Pistol->EnableWeapon();
+	}
+	else
+	{
+		Pistol = GetWorld()->SpawnActor<AWeapon>(PistolClass, FVector::ZeroVector, FRotator::ZeroRotator);
+		if (Pistol)
+		{
+			Pistol->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, PistolAttachSocketName);
+		}
+
+		EnablePistol();
+	}
+}
