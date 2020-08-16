@@ -2,6 +2,10 @@
 
 
 #include "Weapon.h"
+#include "Sound\SoundBase.h"
+#include "Kismet\GameplayStatics.h"
+#include "Sound\SoundCue.h"
+#include "Particles\ParticleSystemComponent.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -12,8 +16,8 @@ AWeapon::AWeapon()
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
 
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	StaticMesh->SetupAttachment(GetRootComponent());
+	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
+	SkeletalMesh->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -33,14 +37,41 @@ void AWeapon::Tick(float DeltaTime)
 void AWeapon::EnableWeapon()
 {
 	SetActorHiddenInGame(false);
-	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetActorTickEnabled(true);
 }
 
 void AWeapon::DisableWeapon()
 {
 	SetActorHiddenInGame(true);
-	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetActorTickEnabled(false);
+}
+
+void AWeapon::StartFire()
+{
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+	}
+
+	if (MuzzleFlashFX)
+	{
+		MuzzleFlashPSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFlashFX, SkeletalMesh, MuzzleFlashSocketName);
+		GetWorldTimerManager().SetTimer(MuzzleFlashTimer, this, &AWeapon::StopMuzzleFlash, MuzzleFlashTime);
+	}
+}
+
+void AWeapon::StopFire()
+{
+
+}
+
+void AWeapon::StopMuzzleFlash()
+{
+	if (MuzzleFlashPSC)
+	{
+		MuzzleFlashPSC->DeactivateSystem();
+	}
 }
 

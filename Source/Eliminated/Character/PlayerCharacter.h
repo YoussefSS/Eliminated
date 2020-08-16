@@ -36,6 +36,7 @@ protected:
 	virtual void BeginPlay() override;
 
 
+	/** Input Functions */
 	void MousePitchInput(float Val);
 	void MouseYawInput(float Val);
 
@@ -55,6 +56,13 @@ protected:
 	void StartAimDownSights();
 	UFUNCTION(BlueprintNativeEvent, Category = "Aiming")
 	void StopAimDownSights();
+
+	void StartFire();
+	void StopFire();
+	/** End Input Functions */
+
+
+
 
 	void UpdateRotationRate();
 	void UpdateMovementAxisInput();

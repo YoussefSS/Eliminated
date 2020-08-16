@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class USoundCue;
+class UParticleSystem;
+class UParticleSystemComponent;
 UCLASS()
 class ELIMINATED_API AWeapon : public AActor
 {
@@ -19,17 +22,45 @@ public:
 	USceneComponent* Root;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	UStaticMeshComponent* StaticMesh;
+	USkeletalMeshComponent* SkeletalMesh;
+
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USoundCue* FireSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* MuzzleFlashFX;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystemComponent* MuzzleFlashPSC;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	FName MuzzleFlashSocketName = "MuzzleFlash";
 
 protected:
-	// Called when the game starts or when spawned
+
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
+
 	virtual void Tick(float DeltaTime) override;
 
 	void EnableWeapon();
 	void DisableWeapon();
+
+
+	void StartFire();
+	void StopFire();
+
+protected:
+
+	void StopMuzzleFlash();
+
+
+	FTimerHandle MuzzleFlashTimer;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	float MuzzleFlashTime = 0.1;
 
 };
