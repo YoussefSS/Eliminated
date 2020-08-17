@@ -91,6 +91,8 @@ public:
 
 	FORCEINLINE EPlayerStatus GetMovementStatus() { return PlayerStatus; }
 
+	virtual FVector GetPawnViewLocation() const override;
+
 protected:
 
 	void DisableCurrentWeapon();

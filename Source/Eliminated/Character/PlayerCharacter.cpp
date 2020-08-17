@@ -282,6 +282,16 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("ToggleCrouch", EInputEvent::IE_Pressed, this, &APlayerCharacter::ToggleCrouch);
 }
 
+FVector APlayerCharacter::GetPawnViewLocation() const
+{
+	if (Camera)
+	{
+		return Camera->GetComponentLocation();
+	}
+
+	return Super::GetPawnViewLocation();
+}
+
 void APlayerCharacter::DisableCurrentWeapon()
 {
 	if (CurrentWeapon)
@@ -304,6 +314,7 @@ void APlayerCharacter::EnablePistol()
 		if (Pistol)
 		{
 			Pistol->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, PistolAttachSocketName);
+			Pistol->SetOwner(this);
 		}
 
 		EnablePistol();

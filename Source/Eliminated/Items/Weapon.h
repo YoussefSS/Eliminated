@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+
+
 class USoundCue;
 class UParticleSystem;
 class UParticleSystemComponent;
@@ -32,8 +34,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	UParticleSystem* MuzzleFlashFX;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
 	UParticleSystemComponent* MuzzleFlashPSC;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* BulletTrailFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* BulletImpactWallFX;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	FName MuzzleFlashSocketName = "MuzzleFlash";
@@ -49,16 +57,31 @@ public:
 	void EnableWeapon();
 	void DisableWeapon();
 
-
 	void StartFire();
+	void Fire();
 	void StopFire();
 
 protected:
 
+	void PlayWeaponImpactEffect(FVector TargetPoint);
+	void PlayWeaponTrailEffect(FVector TargetPoint);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
+	bool bStartedFiring = false;
+
+	// Rounds to fire per minute
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float RateOfFire = 0;
+
+	// How many seconds it will take to fire the next round, calculated on beginplay
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float FireAfterTime;
+
+	FTimerHandle FireShot_TimerHandle;
+
 	void StopMuzzleFlash();
 
-
-	FTimerHandle MuzzleFlashTimer;
+	FTimerHandle MuzzleFlash_TimerHandle;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	float MuzzleFlashTime = 0.1;
