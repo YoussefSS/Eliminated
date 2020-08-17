@@ -9,10 +9,11 @@
 UENUM(BlueprintType)
 enum class EPlayerStatus : uint8
 {
-	EMS_NoWeapon    UMETA(DisplayName = "NoWeapon"),
-	EMS_Pistol		UMETA(DisplayName = "Pistol"),
+	EMS_NoWeapon			UMETA(DisplayName = "NoWeapon"),
+	EMS_CrouchedNoWeapon	UMETA(DisplayName = "CrouchedNoWeapon"),
+	EMS_Pistol				UMETA(DisplayName = "Pistol"),
 
-	EMS_MAX        UMETA(DisplayName = "DefaultMAX")
+	EMS_MAX					UMETA(DisplayName = "DefaultMAX")
 };
 
 
@@ -27,7 +28,7 @@ public:
 	APlayerCharacter();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
-	class USpringArmComponent* CameraArm;
+	class USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	class UCameraComponent* Camera;
 
@@ -52,10 +53,23 @@ protected:
 	void StopSprint();
 	bool bIsSprinting;
 
-	UFUNCTION(BlueprintNativeEvent, Category = "Aiming")
+	void ToggleCrouch();
+	void StartCrouch();
+	void StopCrouch();
+	bool bIsCrouched;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,  Category = "Camera")
+	float CamHeightNormal = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float CamHeightCrouched;
+
 	void StartAimDownSights();
-	UFUNCTION(BlueprintNativeEvent, Category = "Aiming")
 	void StopAimDownSights();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Camera")
+	void StartAimDownSights_Event();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Camera")
+	void StopAimDownSights_Event();
 
 	void StartFire();
 	void StopFire();
@@ -63,9 +77,10 @@ protected:
 
 
 
-
 	void UpdateRotationRate();
 	void UpdateMovementAxisInput();
+
+	void ResetMovementToWalk();
 
 public:	
 	// Called every frame
@@ -114,6 +129,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement | AimDownSight")
 	float SprintMultiplier_AimDownSight = 0.5f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement | Crouch")
+	float WalkMultiplier_Crouched = 0.1f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AimDownSight")
 	FVector SpringArmCameraOffset_AimDownSight;

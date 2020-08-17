@@ -15,24 +15,29 @@ APlayerCharacter::APlayerCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
-	CameraArm->SetupAttachment(GetRootComponent());
-	CameraArm->TargetArmLength = 600.f;
-	CameraArm->bUsePawnControlRotation = true;
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
+	CameraBoom->SetupAttachment(GetRootComponent());
+	CameraBoom->TargetArmLength = 600.f;
+	CameraBoom->bUsePawnControlRotation = true;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
+	Camera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 
+	
+
 	if (GetCharacterMovement())
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = true;
 		GetCharacterMovement()->AirControl = 0.2f;
 		GetCharacterMovement()->JumpZVelocity = 500.f;
+		GetCharacterMovement()->MaxWalkSpeedCrouched = GetCharacterMovement()->MaxWalkSpeed;
+
+		GetCharacterMovement()->NavAgentProps.bCanCrouch = true; // Allowing crouching
 	}
 }
 
@@ -42,7 +47,7 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	GetCharacterMovement()->RotationRate = FRotator(0.f, CharacterRotationRateWalk, 0.f);
-
+	CamHeightCrouched = 38;
 }
 
 void APlayerCharacter::MousePitchInput(float Val)
@@ -67,11 +72,16 @@ void APlayerCharacter::MoveRight(float Val)
 
 void APlayerCharacter::Jump()
 {
+	ResetMovementToWalk();
 	Super::Jump();
 }
 
 void APlayerCharacter::StartSprint()
 {
+	if (PlayerStatus == EPlayerStatus::EMS_CrouchedNoWeapon)
+	{
+		ResetMovementToWalk();
+	}
 	bIsSprinting = true;
 }
 
@@ -80,25 +90,77 @@ void APlayerCharacter::StopSprint()
 	bIsSprinting = false;
 }
 
-void APlayerCharacter::StartAimDownSights_Implementation() // Implementation for C++ method (can be overriden in BP)
+void APlayerCharacter::ToggleCrouch()
 {
+	if (!bIsCrouched)
+	{
+		StartCrouch();
+	}
+	else
+	{
+		StopCrouch();
+	}
+}
+
+void APlayerCharacter::StartCrouch()
+{
+	ResetMovementToWalk();
+
+	StopSprint();
+	Super::Crouch();
+	PlayerStatus = EPlayerStatus::EMS_CrouchedNoWeapon;
+	bIsCrouched = true;
+	if (CameraBoom)
+	{
+		CameraBoom->SetRelativeLocation(FVector(0, 0, CamHeightCrouched));
+	}
+}
+
+void APlayerCharacter::StopCrouch()
+{
+	ResetMovementToWalk();
+}
+
+void APlayerCharacter::StartAimDownSights() // Implementation for C++ method (can be overriden in BP)
+{
+	ResetMovementToWalk();
+	
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 
-	PlayerStatus = EPlayerStatus::EMS_Pistol;
+	StartAimDownSights_Event();
 
+	PlayerStatus = EPlayerStatus::EMS_Pistol;
 	EnablePistol();
 }
 
-void APlayerCharacter::StopAimDownSights_Implementation()
+void APlayerCharacter::StopAimDownSights()
 {
-	//CameraArm->TargetArmLength = 600.f;
-	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	DisableCurrentWeapon();
 
+	if (PlayerStatus == EPlayerStatus::EMS_CrouchedNoWeapon) return;
+
+	ResetMovementToWalk();
+}
+
+void APlayerCharacter::ResetMovementToWalk()
+{
 	PlayerStatus = EPlayerStatus::EMS_NoWeapon;
 
+	
+	// Uncrouching
+	Super::UnCrouch();
+	bIsCrouched = false;
+	if (CameraBoom)
+	{
+		CameraBoom->SetRelativeLocation(FVector(0, 0, 0));
+	}
+
+	// Stopping looking down sights
 	DisableCurrentWeapon();
+	StopAimDownSights_Event();
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
 void APlayerCharacter::StartFire()
@@ -145,8 +207,8 @@ void APlayerCharacter::UpdateMovementAxisInput()
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y); // Find out which way is right
 
 	// Getting movement speed
-	float WalkMultiplier;
-	float SprintMultiplier;
+	float WalkMultiplier= 0;
+	float SprintMultiplier = 0;
 	switch (PlayerStatus)
 	{
 	case EPlayerStatus::EMS_NoWeapon: 
@@ -157,12 +219,16 @@ void APlayerCharacter::UpdateMovementAxisInput()
 		WalkMultiplier = WalkMultiplier_AimDownSight;
 		SprintMultiplier = SprintMultiplier_AimDownSight;
 		break;
+	case EPlayerStatus::EMS_CrouchedNoWeapon:
+		WalkMultiplier = WalkMultiplier_Crouched;
+		break;
 	case EPlayerStatus::EMS_MAX:
 	default:
 		WalkMultiplier = 0;
 		SprintMultiplier = 0;
 		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UpdateMovementAxisInput: Reached default case"));
 		break;
+
 	}
 	float MoveSpeedForward = bIsSprinting ? (MoveForwardAxisVal * SprintMultiplier) : (MoveForwardAxisVal * WalkMultiplier);
 	float MoveSpeedRight = bIsSprinting ? (MoveRightAxisVal * SprintMultiplier) : (MoveRightAxisVal * WalkMultiplier);
@@ -176,6 +242,8 @@ void APlayerCharacter::UpdateMovementAxisInput()
 	AddMovementInput(ForwardDirection, MoveSpeedForward);
 	AddMovementInput(RightDirection, MoveSpeedRight);
 }
+
+
 
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
@@ -207,6 +275,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartFire);
 	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &APlayerCharacter::StopFire);
+
+	PlayerInputComponent->BindAction("HoldCrouch", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartCrouch);
+	PlayerInputComponent->BindAction("HoldCrouch", EInputEvent::IE_Released, this, &APlayerCharacter::StopCrouch);
+
+	PlayerInputComponent->BindAction("ToggleCrouch", EInputEvent::IE_Pressed, this, &APlayerCharacter::ToggleCrouch);
 }
 
 void APlayerCharacter::DisableCurrentWeapon()
