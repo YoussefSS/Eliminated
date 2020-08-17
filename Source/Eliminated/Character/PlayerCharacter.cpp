@@ -8,6 +8,7 @@
 #include "Eliminated\Items\Weapon.h"
 #include "Engine\World.h"
 #include "Components\SkeletalMeshComponent.h"
+#include "Eliminated\Character\PlayerCharacterController.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -38,6 +39,7 @@ APlayerCharacter::APlayerCharacter()
 		GetCharacterMovement()->MaxWalkSpeedCrouched = GetCharacterMovement()->MaxWalkSpeed;
 
 		GetCharacterMovement()->NavAgentProps.bCanCrouch = true; // Allowing crouching
+		GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
 	}
 }
 
@@ -132,6 +134,12 @@ void APlayerCharacter::StartAimDownSights() // Implementation for C++ method (ca
 
 	PlayerStatus = EPlayerStatus::EMS_Pistol;
 	EnablePistol();
+
+	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
+	if (PC)
+	{
+		PC->ShowCrossHair();
+	}
 }
 
 void APlayerCharacter::StopAimDownSights()
@@ -161,6 +169,11 @@ void APlayerCharacter::ResetMovementToWalk()
 	StopAimDownSights_Event();
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
+	if (PC)
+	{
+		PC->HideCrossHair();
+	}
 }
 
 void APlayerCharacter::StartFire()
