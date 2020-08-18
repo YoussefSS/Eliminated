@@ -36,3 +36,12 @@ void APlayerCharacterController::HideCrossHair()
 		HUDWidget->HideCrossHair();
 	}
 }
+
+void APlayerCharacterController::UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo)
+{
+	if (HUDWidget)
+	{
+		HUDWidget->UpdateAmmoCounterText(NewCurrentAmmo, NewCurrentClipAmmo);
+	}
+	
+}

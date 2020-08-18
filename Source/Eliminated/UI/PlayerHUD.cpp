@@ -3,12 +3,16 @@
 
 #include "PlayerHUD.h"
 #include "Components\Image.h"
+#include "Components\TextBlock.h"
+#include "Eliminated\Character\PlayerCharacter.h"
+#include "Kismet\GameplayStatics.h"
 
 bool UPlayerHUD::Initialize()
 {
 	Super::Initialize();
 
 	if (!CrossHairImage) return false;
+	if (!AmmoCounterText) return false;
 
 	return true;
 }
@@ -27,4 +31,14 @@ void UPlayerHUD::HideCrossHair()
 	{
 		CrossHairImage->SetVisibility(ESlateVisibility::Hidden);
 	}
+}
+
+void UPlayerHUD::UpdateAmmoCounterText(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo)
+{
+	FString NewAmmoText = FString::FromInt(NewCurrentClipAmmo)
+		.Append(" / ")
+		.Append(FString::FromInt(NewCurrentAmmo));
+
+
+	AmmoCounterText->SetText(FText::FromString(NewAmmoText));
 }

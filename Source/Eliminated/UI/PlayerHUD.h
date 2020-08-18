@@ -18,11 +18,15 @@ public:
 	bool Initialize() override;
 
 protected:
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, meta = (BindWidget))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	class UImage* CrossHairImage;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UTextBlock* AmmoCounterText;
 public:
 
 	void ShowCrossHair();
 	void HideCrossHair();
+
+	void UpdateAmmoCounterText(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
 };

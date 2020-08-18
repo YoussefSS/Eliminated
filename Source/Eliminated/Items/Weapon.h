@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponAmmoChanged, int32, NewCurrentAmmoCounte, int32, NewCurrentClipAmmoCount);
 
 class USoundCue;
 class UParticleSystem;
@@ -73,6 +73,11 @@ public:
 	bool IsReloading() { return bIsReloading; }
 	void EndReload();
 
+	int32 GetCurrentAmmoCount() { return CurrentAmmo; }
+	int32 GetCurrentClipAmmoCount() { return CurrentClipAmmo; }
+
+	FOnWeaponAmmoChanged OnWeaponAmmoChanged;
+
 protected:
 
 	void PlayWeaponImpactEffect(FVector TargetPoint);
@@ -87,11 +92,11 @@ protected:
 
 	/** How many rounds total does the weapon have */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-	float MaxAmmo = 100;
+	int32 MaxAmmo = 100;
 
 	/** How many rounds total does a clip have */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-	float AmmoPerClip = 10;
+	int32 AmmoPerClip = 10;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	float MuzzleFlashTime = 0.1;
@@ -101,11 +106,11 @@ protected:
 
 	/** Total current ammo remaining */
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
-	float CurrentAmmo = 0;
+	int32 CurrentAmmo = 0;
 
 	/** Ammo remaining in the current clip */
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
-	float CurrentClipAmmo = 0;
+	int32 CurrentClipAmmo = 0;
 
 	/** Should the weapon currently be firing */
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")

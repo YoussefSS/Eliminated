@@ -218,6 +218,15 @@ void APlayerCharacter::StopReload()
 	CurrentWeapon->EndReload();
 }
 
+void APlayerCharacter::OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo)
+{
+	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
+	if (PC)
+	{
+		PC->UpdateHUDAmmoCounter(NewCurrentAmmo, NewCurrentClipAmmo);
+	}
+}
+
 void APlayerCharacter::UpdateRotationRate()
 {
 	// Limit rotation while falling/jumping
@@ -356,6 +365,8 @@ void APlayerCharacter::EnablePistol()
 		{
 			Pistol->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, PistolAttachSocketName);
 			Pistol->SetOwner(this);
+			Pistol->OnWeaponAmmoChanged.AddDynamic(this, &APlayerCharacter::OnWeaponAmmoChanged);
+			OnWeaponAmmoChanged(Pistol->GetCurrentAmmoCount(), Pistol->GetCurrentClipAmmoCount());
 		}
 
 		EnablePistol();

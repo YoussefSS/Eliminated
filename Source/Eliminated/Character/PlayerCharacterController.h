@@ -34,5 +34,6 @@ public:
 	void ShowCrossHair();
 	void HideCrossHair();
 
+	void UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
 
 };

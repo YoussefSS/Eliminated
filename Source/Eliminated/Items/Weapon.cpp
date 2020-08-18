@@ -131,6 +131,7 @@ void AWeapon::Fire()
 	
 	// Reduce ammo
 	CurrentClipAmmo--;
+	OnWeaponAmmoChanged.Broadcast(CurrentAmmo, CurrentClipAmmo);
 
 	// Repeat the shot based on the rate of fire
 	GetWorldTimerManager().SetTimer(FireShot_TimerHandle, this, &AWeapon::Fire, FireAfterTime);
@@ -162,10 +163,23 @@ void AWeapon::StartReload()
 	}
 
 	// Calculate ammo
-	float ConsumedAmmo = CurrentClipAmmo;
-	CurrentClipAmmo = FMath::Min(AmmoPerClip, CurrentAmmo);
-	ConsumedAmmo = CurrentClipAmmo - ConsumedAmmo;
+	float AmmoNeededForReload = AmmoPerClip - CurrentClipAmmo; // The number of bullets needed for the reload
+	float ConsumedAmmo;
+	if (CurrentAmmo >= AmmoNeededForReload) // Current ammo is enough for reload, so just take the ammo needed for reload
+	{
+		ConsumedAmmo = AmmoNeededForReload;
+	}
+	else // Current ammo is NOT enough for reload, so take the current ammo
+	{
+		ConsumedAmmo = CurrentAmmo;
+	}
+
 	CurrentAmmo -= ConsumedAmmo;
+	CurrentClipAmmo += ConsumedAmmo; 
+
+
+
+	OnWeaponAmmoChanged.Broadcast(CurrentAmmo, CurrentClipAmmo);
 }
 
 void AWeapon::EndReload()

@@ -104,6 +104,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void StopReload();
 
+	UFUNCTION()
+	void OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
+
 protected:
 
 	void DisableCurrentWeapon();
