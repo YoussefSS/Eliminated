@@ -32,6 +32,12 @@ public:
 	USoundCue* FireSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USoundCue* ReloadSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USoundCue* EmptyClipSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	UParticleSystem* MuzzleFlashFX;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
@@ -57,33 +63,64 @@ public:
 	void EnableWeapon();
 	void DisableWeapon();
 
+	bool CanFire();
 	void StartFire();
 	void Fire();
 	void StopFire();
+
+	bool CanReload();
+	void StartReload();
+	bool IsReloading() { return bIsReloading; }
+	void EndReload();
 
 protected:
 
 	void PlayWeaponImpactEffect(FVector TargetPoint);
 	void PlayWeaponTrailEffect(FVector TargetPoint);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
-	bool bStartedFiring = false;
+	//////////////////////////////////////////////////////////////////////////////////
+	// Customizable variables
 
-	// Rounds to fire per minute
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	/** Rounds to fire per minute */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	float RateOfFire = 0;
 
-	// How many seconds it will take to fire the next round, calculated on beginplay
+	/** How many rounds total does the weapon have */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	float MaxAmmo = 100;
+
+	/** How many rounds total does a clip have */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	float AmmoPerClip = 10;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	float MuzzleFlashTime = 0.1;
+
+	////////////////////////////////////////////////////////////////////////////////////
+	// Other
+
+	/** Total current ammo remaining */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
+	float CurrentAmmo = 0;
+
+	/** Ammo remaining in the current clip */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
+	float CurrentClipAmmo = 0;
+
+	/** Should the weapon currently be firing */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
+	bool bStartedFiring = false;
+
+	/** How many seconds it will take to fire the next round, calculated on beginplay */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FireAfterTime;
 
 	FTimerHandle FireShot_TimerHandle;
 
 	void StopMuzzleFlash();
-
 	FTimerHandle MuzzleFlash_TimerHandle;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-	float MuzzleFlashTime = 0.1;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
+	bool bIsReloading = false;
 
 };

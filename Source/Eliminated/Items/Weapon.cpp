@@ -27,6 +27,8 @@ void AWeapon::BeginPlay()
 	Super::BeginPlay();
 	
 	FireAfterTime = 1 / (RateOfFire / 60);
+	CurrentAmmo = MaxAmmo;
+	CurrentClipAmmo = AmmoPerClip;
 }
 
 // Called every frame
@@ -46,9 +48,19 @@ void AWeapon::EnableWeapon()
 void AWeapon::DisableWeapon()
 {
 	bStartedFiring = false;
+	EndReload();
 	SetActorHiddenInGame(true);
 	SkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetActorTickEnabled(false);
+}
+
+bool AWeapon::CanFire()
+{
+	if (!bStartedFiring) return false;
+	if (CurrentClipAmmo <= 0) return false;
+	if (bIsReloading) return false;
+
+	return true;
 }
 
 void AWeapon::StartFire()
@@ -59,7 +71,18 @@ void AWeapon::StartFire()
 
 void AWeapon::Fire()
 {
-	if (!bStartedFiring) return;
+	if (!CanFire())
+	{
+		if (CurrentClipAmmo <= 0) // If out of ammo, play empty clip sound
+		{
+			if (EmptyClipSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, EmptyClipSound, GetActorLocation());
+			}
+		}
+
+		return;
+	}
 
 	// Play Sound
 	if (FireSound)
@@ -106,7 +129,8 @@ void AWeapon::Fire()
 	}
 
 	
-
+	// Reduce ammo
+	CurrentClipAmmo--;
 
 	// Repeat the shot based on the rate of fire
 	GetWorldTimerManager().SetTimer(FireShot_TimerHandle, this, &AWeapon::Fire, FireAfterTime);
@@ -115,6 +139,38 @@ void AWeapon::Fire()
 void AWeapon::StopFire()
 {
 	bStartedFiring = false;
+}
+
+bool AWeapon::CanReload()
+{
+	bool bCanReloadA = true;
+	CurrentAmmo <= 0 ? bCanReloadA = false : bCanReloadA = true;
+
+	bool bCanReloadB = true;
+	CurrentClipAmmo >= AmmoPerClip ? bCanReloadB = false : bCanReloadB = true;
+	return bCanReloadA & bCanReloadB;
+}
+
+void AWeapon::StartReload()
+{
+	bIsReloading = true;
+
+	// Play Sound
+	if (ReloadSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation());
+	}
+
+	// Calculate ammo
+	float ConsumedAmmo = CurrentClipAmmo;
+	CurrentClipAmmo = FMath::Min(AmmoPerClip, CurrentAmmo);
+	ConsumedAmmo = CurrentClipAmmo - ConsumedAmmo;
+	CurrentAmmo -= ConsumedAmmo;
+}
+
+void AWeapon::EndReload()
+{
+	bIsReloading = false;
 }
 
 void AWeapon::PlayWeaponImpactEffect(FVector TargetPoint)

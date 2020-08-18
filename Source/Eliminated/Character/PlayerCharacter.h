@@ -37,7 +37,8 @@ protected:
 	virtual void BeginPlay() override;
 
 
-	/** Input Functions */
+	////////////////////////////////////////////////////////////////
+	// Input Functions
 	void MousePitchInput(float Val);
 	void MouseYawInput(float Val);
 
@@ -73,7 +74,12 @@ protected:
 
 	void StartFire();
 	void StopFire();
-	/** End Input Functions */
+
+	/** Try to reload by pressing the reload button */
+	void TryReload();
+	bool bIsReloading = false;
+
+	////////////////////////////////////////////////////////////////
 
 
 
@@ -93,10 +99,21 @@ public:
 
 	virtual FVector GetPawnViewLocation() const override;
 
+	bool IsReloading() { return bIsReloading; }
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void StopReload();
+
 protected:
 
 	void DisableCurrentWeapon();
 	void EnablePistol();
+
+	/** Do the reload action */
+	void DoReload();
+
+	
+
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
 	AWeapon* CurrentWeapon;

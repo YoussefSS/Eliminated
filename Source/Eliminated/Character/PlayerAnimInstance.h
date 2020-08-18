@@ -44,6 +44,9 @@ public:
     bool bIsInAir;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
+	bool bIsReloading;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
     EPlayerStatus PlayerStatus;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")

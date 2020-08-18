@@ -192,6 +192,32 @@ void APlayerCharacter::StopFire()
 	}
 }
 
+void APlayerCharacter::TryReload()
+{
+	if (!CurrentWeapon) return;
+
+	if (CurrentWeapon->CanReload())
+	{
+		DoReload();
+	}
+}
+
+void APlayerCharacter::DoReload()
+{
+	ensure(CurrentWeapon);
+
+	bIsReloading = true;
+	CurrentWeapon->StartReload();
+}
+
+void APlayerCharacter::StopReload()
+{
+	if (!CurrentWeapon) return;
+
+	bIsReloading = false;
+	CurrentWeapon->EndReload();
+}
+
 void APlayerCharacter::UpdateRotationRate()
 {
 	// Limit rotation while falling/jumping
@@ -293,6 +319,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("HoldCrouch", EInputEvent::IE_Released, this, &APlayerCharacter::StopCrouch);
 
 	PlayerInputComponent->BindAction("ToggleCrouch", EInputEvent::IE_Pressed, this, &APlayerCharacter::ToggleCrouch);
+
+	PlayerInputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &APlayerCharacter::TryReload);
 }
 
 FVector APlayerCharacter::GetPawnViewLocation() const
