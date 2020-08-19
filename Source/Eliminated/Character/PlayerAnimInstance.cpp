@@ -30,6 +30,7 @@ void UPlayerAnimInstance::UpdateAnimationProperties()
 		bIsInAir = PlayerCharacter->GetCharacterMovement()->IsFalling();
 		PlayerStatus = PlayerCharacter->GetMovementStatus();
 		bIsReloading = PlayerCharacter->IsReloading();
+		bIsCrouched = PlayerCharacter->IsCrouched();
 
 		//// Calculating aim offset
 		FRotator ROTA = PlayerCharacter->GetControlRotation()	- PlayerCharacter->GetActorRotation();

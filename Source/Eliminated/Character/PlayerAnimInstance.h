@@ -44,6 +44,9 @@ public:
     bool bIsInAir;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
+	bool bIsCrouched;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
 	bool bIsReloading;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")

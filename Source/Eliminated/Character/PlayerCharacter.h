@@ -10,7 +10,6 @@ UENUM(BlueprintType)
 enum class EPlayerStatus : uint8
 {
 	EMS_NoWeapon			UMETA(DisplayName = "NoWeapon"),
-	EMS_CrouchedNoWeapon	UMETA(DisplayName = "CrouchedNoWeapon"),
 	EMS_Pistol				UMETA(DisplayName = "Pistol"),
 
 	EMS_MAX					UMETA(DisplayName = "DefaultMAX")
@@ -86,7 +85,6 @@ protected:
 	void UpdateRotationRate();
 	void UpdateMovementAxisInput();
 
-	void ResetMovementToWalk();
 
 public:	
 	// Called every frame
@@ -100,6 +98,8 @@ public:
 	virtual FVector GetPawnViewLocation() const override;
 
 	bool IsReloading() { return bIsReloading; }
+
+	bool IsCrouched() { return bIsCrouched; }
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void StopReload();

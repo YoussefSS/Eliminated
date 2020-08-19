@@ -50,6 +50,11 @@ void APlayerCharacter::BeginPlay()
 	
 	GetCharacterMovement()->RotationRate = FRotator(0.f, CharacterRotationRateWalk, 0.f);
 	CamHeightCrouched = 38;
+
+	if (CameraBoom)
+	{
+		CameraBoom->TargetArmLength = SpringArmDistance_Regular;
+	}
 }
 
 void APlayerCharacter::MousePitchInput(float Val)
@@ -74,15 +79,15 @@ void APlayerCharacter::MoveRight(float Val)
 
 void APlayerCharacter::Jump()
 {
-	ResetMovementToWalk();
+	StopCrouch();
 	Super::Jump();
 }
 
 void APlayerCharacter::StartSprint()
 {
-	if (PlayerStatus == EPlayerStatus::EMS_CrouchedNoWeapon)
+	if (bIsCrouched)
 	{
-		ResetMovementToWalk();
+		StopCrouch();
 	}
 	bIsSprinting = true;
 }
@@ -106,11 +111,8 @@ void APlayerCharacter::ToggleCrouch()
 
 void APlayerCharacter::StartCrouch()
 {
-	ResetMovementToWalk();
-
 	StopSprint();
 	Super::Crouch();
-	PlayerStatus = EPlayerStatus::EMS_CrouchedNoWeapon;
 	bIsCrouched = true;
 	if (CameraBoom)
 	{
@@ -120,17 +122,21 @@ void APlayerCharacter::StartCrouch()
 
 void APlayerCharacter::StopCrouch()
 {
-	ResetMovementToWalk();
+	Super::UnCrouch();
+	bIsCrouched = false;
+
+	if (CameraBoom)
+	{
+		CameraBoom->SetRelativeLocation(FVector(0, 0, 0));
+	}
 }
 
 void APlayerCharacter::StartAimDownSights() // Implementation for C++ method (can be overriden in BP)
 {
-	ResetMovementToWalk();
-	
+	StartAimDownSights_Event();
+
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-
-	StartAimDownSights_Event();
 
 	PlayerStatus = EPlayerStatus::EMS_Pistol;
 	EnablePistol();
@@ -144,29 +150,10 @@ void APlayerCharacter::StartAimDownSights() // Implementation for C++ method (ca
 
 void APlayerCharacter::StopAimDownSights()
 {
-	DisableCurrentWeapon();
-
-	if (PlayerStatus == EPlayerStatus::EMS_CrouchedNoWeapon) return;
-
-	ResetMovementToWalk();
-}
-
-void APlayerCharacter::ResetMovementToWalk()
-{
-	PlayerStatus = EPlayerStatus::EMS_NoWeapon;
-
-	
-	// Uncrouching
-	Super::UnCrouch();
-	bIsCrouched = false;
-	if (CameraBoom)
-	{
-		CameraBoom->SetRelativeLocation(FVector(0, 0, 0));
-	}
-
-	// Stopping looking down sights
-	DisableCurrentWeapon();
 	StopAimDownSights_Event();
+
+	PlayerStatus = EPlayerStatus::EMS_NoWeapon;
+	DisableCurrentWeapon();
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
@@ -267,9 +254,7 @@ void APlayerCharacter::UpdateMovementAxisInput()
 		WalkMultiplier = WalkMultiplier_AimDownSight;
 		SprintMultiplier = SprintMultiplier_AimDownSight;
 		break;
-	case EPlayerStatus::EMS_CrouchedNoWeapon:
-		WalkMultiplier = WalkMultiplier_Crouched;
-		break;
+
 	case EPlayerStatus::EMS_MAX:
 	default:
 		WalkMultiplier = 0;
@@ -278,6 +263,12 @@ void APlayerCharacter::UpdateMovementAxisInput()
 		break;
 
 	}
+
+	if (bIsCrouched)
+	{
+		WalkMultiplier = WalkMultiplier_Crouched;
+	}
+
 	float MoveSpeedForward = bIsSprinting ? (MoveForwardAxisVal * SprintMultiplier) : (MoveForwardAxisVal * WalkMultiplier);
 	float MoveSpeedRight = bIsSprinting ? (MoveRightAxisVal * SprintMultiplier) : (MoveRightAxisVal * WalkMultiplier);
 
