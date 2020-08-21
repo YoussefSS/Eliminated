@@ -29,28 +29,41 @@ public:
 
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Sound")
 	USoundCue* FireSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Sound")
 	USoundCue* ReloadSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Sound")
 	USoundCue* EmptyClipSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
 	UParticleSystem* MuzzleFlashFX;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon | Visual Effects")
 	UParticleSystemComponent* MuzzleFlashPSC;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
 	UParticleSystem* BulletTrailFX;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
 	UParticleSystem* BulletImpactWallFX;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	UMaterialInterface* BulletHoleDecal;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	FVector DecalSize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	float DecalLifeSpan;
+
+	/** The smaller the number the bigger the render distance, 0-0.001 will render from far */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	float DecalFadeScreenSize;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Visual Effects")
 	FName MuzzleFlashSocketName = "MuzzleFlash";
 
 protected:
@@ -80,6 +93,7 @@ public:
 	FOnWeaponAmmoChanged OnWeaponAmmoChanged;
 	FOnShotFired OnShotFired;
 
+	float GetRecoilAmount() { return RecoilAmount; }
 protected:
 
 	void PlayWeaponImpactEffect(FVector TargetPoint);
@@ -102,6 +116,14 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	float MuzzleFlashTime = 0.1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	float RecoilAmount = 0.1;
+
+
+
+
+
 
 	////////////////////////////////////////////////////////////////////////////////////
 	// Other

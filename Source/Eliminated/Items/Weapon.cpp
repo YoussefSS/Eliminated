@@ -7,6 +7,7 @@
 #include "Sound\SoundCue.h"
 #include "Particles\ParticleSystemComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Components\DecalComponent.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -118,13 +119,20 @@ void AWeapon::Fire()
 			// Hit logic here
 			LineTraceHitPoint = Hit.ImpactPoint;
 			PlayWeaponImpactEffect(LineTraceHitPoint);
+
+			// Bullet hole decal
+			if (BulletHoleDecal)
+			{
+				
+				UDecalComponent* DecalComp = UGameplayStatics::SpawnDecalAtLocation(this, BulletHoleDecal, DecalSize, Hit.ImpactPoint, Hit.Normal.Rotation(), DecalLifeSpan);
+				DecalComp->SetFadeScreenSize(DecalFadeScreenSize);
+			}
 		}
 
 
 
 		// Play weapon trail effect
 		PlayWeaponTrailEffect(LineTraceHitPoint);
-	
 
 	}
 

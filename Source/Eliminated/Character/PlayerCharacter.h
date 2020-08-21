@@ -108,18 +108,9 @@ public:
 	UFUNCTION()
 	void OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
 
-	//////////////////////////////////////
 	/** Shot firing animation */
 	UFUNCTION()
 	void OnShotFired();
-
-	/** To be called the frame after bShotFired is set to true */
-	void ShotFiredStop() { bShotFired = false; }
-
-	bool bShotFired = false;
-
-	FTimerHandle ShotFire_Handle;
-	//////////////////////////////////////
 
 protected:
 
@@ -129,22 +120,29 @@ protected:
 	/** Do the reload action */
 	void DoReload();
 
-	
-
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
 	AWeapon* CurrentWeapon;
 
-	/** PISTOL */
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	//////////////////////////////////////
+	// PISTOL
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Pistol")
 	TSubclassOf <AWeapon> PistolClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Pistol")
 	FName PistolAttachSocketName = "PistolSocket";
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon | Pistol")
 	AWeapon* Pistol;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Pistol")
+	class UAnimMontage* PistolMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Pistol")
+	TSubclassOf<UCameraShake> PistolFireCamShake;
+
+	//////////////////////////////////////
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "540.0", UIMin = "0.0", UIMax = "540.0"), Category = "Movement")
 	float CharacterRotationRateWalk = 540.0f;

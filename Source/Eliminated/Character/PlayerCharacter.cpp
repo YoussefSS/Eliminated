@@ -204,6 +204,13 @@ void APlayerCharacter::DoReload()
 
 	bIsReloading = true;
 	CurrentWeapon->StartReload();
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && PistolMontage)
+	{
+		AnimInstance->Montage_Play(PistolMontage, .8f);
+		AnimInstance->Montage_JumpToSection(FName("Reload"), PistolMontage);
+	}
 }
 
 void APlayerCharacter::StopReload()
@@ -225,9 +232,25 @@ void APlayerCharacter::OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurren
 
 void APlayerCharacter::OnShotFired()
 {
-	bShotFired = true;
-	GetWorldTimerManager().SetTimer(ShotFire_Handle, this, &APlayerCharacter::ShotFiredStop , 0.01);
-	AddControllerPitchInput(-0.1);
+	ensure(CurrentWeapon);
+
+	// Recoil
+	AddControllerPitchInput(-CurrentWeapon->GetRecoilAmount());
+
+	// Play animation
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && PistolMontage)
+	{
+		AnimInstance->Montage_Play(PistolMontage, 1.2f);
+		AnimInstance->Montage_JumpToSection(FName("Fire"), PistolMontage);
+	}
+
+	// Cam shake
+	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
+	if (PC)
+	{
+		if (PistolFireCamShake) PC->ClientPlayCameraShake(PistolFireCamShake);
+	}
 }
 
 void APlayerCharacter::UpdateRotationRate()
