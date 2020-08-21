@@ -10,7 +10,7 @@ UENUM(BlueprintType)
 enum class EPlayerStatus : uint8
 {
 	EMS_NoWeapon			UMETA(DisplayName = "NoWeapon"),
-	EMS_Pistol				UMETA(DisplayName = "Pistol"),
+	EMS_DownSightsPistol				UMETA(DisplayName = "DownSightsPistol"),
 
 	EMS_MAX					UMETA(DisplayName = "DefaultMAX")
 };
@@ -65,6 +65,7 @@ protected:
 
 	void StartAimDownSights();
 	void StopAimDownSights();
+	bool bIsAimingDownSights;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Camera")
 	void StartAimDownSights_Event();
@@ -106,6 +107,19 @@ public:
 
 	UFUNCTION()
 	void OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
+
+	//////////////////////////////////////
+	/** Shot firing animation */
+	UFUNCTION()
+	void OnShotFired();
+
+	/** To be called the frame after bShotFired is set to true */
+	void ShotFiredStop() { bShotFired = false; }
+
+	bool bShotFired = false;
+
+	FTimerHandle ShotFire_Handle;
+	//////////////////////////////////////
 
 protected:
 

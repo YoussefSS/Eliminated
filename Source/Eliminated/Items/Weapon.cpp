@@ -128,6 +128,7 @@ void AWeapon::Fire()
 
 	}
 
+	OnShotFired.Broadcast();
 	
 	// Reduce ammo
 	CurrentClipAmmo--;

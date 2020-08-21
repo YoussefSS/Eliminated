@@ -133,14 +133,18 @@ void APlayerCharacter::StopCrouch()
 
 void APlayerCharacter::StartAimDownSights() // Implementation for C++ method (can be overriden in BP)
 {
-	StartAimDownSights_Event();
+	StartAimDownSights_Event(); // Start the BP timeline event
 
+
+	PlayerStatus = EPlayerStatus::EMS_DownSightsPistol;
+	bIsAimingDownSights = true;
+	EnablePistol();
+
+	// Setting the player to look at the camera
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 
-	PlayerStatus = EPlayerStatus::EMS_Pistol;
-	EnablePistol();
-
+	// Showing crosshair
 	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
 	if (PC)
 	{
@@ -153,9 +157,14 @@ void APlayerCharacter::StopAimDownSights()
 	StopAimDownSights_Event();
 
 	PlayerStatus = EPlayerStatus::EMS_NoWeapon;
+	bIsAimingDownSights = false;
 	DisableCurrentWeapon();
+
+	// Setting the player to run freely without looking at the camera
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	// Hiding crosshair
 	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
 	if (PC)
 	{
@@ -214,6 +223,13 @@ void APlayerCharacter::OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurren
 	}
 }
 
+void APlayerCharacter::OnShotFired()
+{
+	bShotFired = true;
+	GetWorldTimerManager().SetTimer(ShotFire_Handle, this, &APlayerCharacter::ShotFiredStop , 0.01);
+	AddControllerPitchInput(-0.1);
+}
+
 void APlayerCharacter::UpdateRotationRate()
 {
 	// Limit rotation while falling/jumping
@@ -250,7 +266,7 @@ void APlayerCharacter::UpdateMovementAxisInput()
 		WalkMultiplier = WalkMultiplier_NoWeapon;
 		SprintMultiplier = SprintMultiplier_NoWeapon;
 		break;
-	case EPlayerStatus::EMS_Pistol:
+	case EPlayerStatus::EMS_DownSightsPistol:
 		WalkMultiplier = WalkMultiplier_AimDownSight;
 		SprintMultiplier = SprintMultiplier_AimDownSight;
 		break;
@@ -358,6 +374,8 @@ void APlayerCharacter::EnablePistol()
 			Pistol->SetOwner(this);
 			Pistol->OnWeaponAmmoChanged.AddDynamic(this, &APlayerCharacter::OnWeaponAmmoChanged);
 			OnWeaponAmmoChanged(Pistol->GetCurrentAmmoCount(), Pistol->GetCurrentClipAmmoCount());
+
+			Pistol->OnShotFired.AddDynamic(this, &APlayerCharacter::OnShotFired);
 		}
 
 		EnablePistol();

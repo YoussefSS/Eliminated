@@ -7,6 +7,7 @@
 #include "Weapon.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponAmmoChanged, int32, NewCurrentAmmoCounte, int32, NewCurrentClipAmmoCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShotFired);
 
 class USoundCue;
 class UParticleSystem;
@@ -77,6 +78,7 @@ public:
 	int32 GetCurrentClipAmmoCount() { return CurrentClipAmmo; }
 
 	FOnWeaponAmmoChanged OnWeaponAmmoChanged;
+	FOnShotFired OnShotFired;
 
 protected:
 

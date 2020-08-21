@@ -31,6 +31,7 @@ void UPlayerAnimInstance::UpdateAnimationProperties()
 		PlayerStatus = PlayerCharacter->GetMovementStatus();
 		bIsReloading = PlayerCharacter->IsReloading();
 		bIsCrouched = PlayerCharacter->IsCrouched();
+		bShotFired = PlayerCharacter->bShotFired;
 
 		//// Calculating aim offset
 		FRotator ROTA = PlayerCharacter->GetControlRotation()	- PlayerCharacter->GetActorRotation();
