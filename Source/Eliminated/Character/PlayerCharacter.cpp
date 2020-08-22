@@ -223,6 +223,11 @@ void APlayerCharacter::StopReload()
 
 void APlayerCharacter::OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo)
 {
+	if (NewCurrentClipAmmo <= 0)
+	{
+		TryReload();
+	}
+
 	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
 	if (PC)
 	{

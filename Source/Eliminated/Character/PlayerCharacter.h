@@ -9,10 +9,10 @@
 UENUM(BlueprintType)
 enum class EPlayerStatus : uint8
 {
-	EMS_NoWeapon			UMETA(DisplayName = "NoWeapon"),
+	EMS_NoWeapon						UMETA(DisplayName = "NoWeapon"),
 	EMS_DownSightsPistol				UMETA(DisplayName = "DownSightsPistol"),
 
-	EMS_MAX					UMETA(DisplayName = "DefaultMAX")
+	EMS_MAX								UMETA(DisplayName = "DefaultMAX")
 };
 
 
@@ -75,7 +75,7 @@ protected:
 	void StartFire();
 	void StopFire();
 
-	/** Try to reload by pressing the reload button */
+	/** Try to reload when pressing the reload button */
 	void TryReload();
 	bool bIsReloading = false;
 
@@ -117,29 +117,33 @@ protected:
 	void DisableCurrentWeapon();
 	void EnablePistol();
 
-	/** Do the reload action */
+	/** Do the reload action, only call this from TryReload */
 	void DoReload();
 
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
 	AWeapon* CurrentWeapon;
 
+	/** Should the weapon automatically reload if the clip is empty */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	bool bAutoReloadIfClipIsEmpty = true;
+
 	//////////////////////////////////////
 	// PISTOL
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Pistol")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Pistol")
 	TSubclassOf <AWeapon> PistolClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Pistol")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Pistol")
 	FName PistolAttachSocketName = "PistolSocket";
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon | Pistol")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon| Pistol")
 	AWeapon* Pistol;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Pistol")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon| Pistol")
 	class UAnimMontage* PistolMontage;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Pistol")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Pistol")
 	TSubclassOf<UCameraShake> PistolFireCamShake;
 
 	//////////////////////////////////////
@@ -153,21 +157,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "100.0", ClampMax = "700.0", UIMin = "100.0", UIMax = "700.0"), Category = "Movement")
 	float SpringArmDistance_AimDownSight = 300.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement | No Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement| No Weapon")
 	float WalkMultiplier_NoWeapon = 0.33f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement | No Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement| No Weapon")
 	float SprintMultiplier_NoWeapon = 1.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement | AimDownSight")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement| AimDownSight")
 	float WalkMultiplier_AimDownSight = 0.15f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement | AimDownSight")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement| AimDownSight")
 	float SprintMultiplier_AimDownSight = 0.5f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement| AimDownSight")
+	FVector SpringArmCameraOffset_AimDownSight;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement | Crouch")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement| Crouch")
 	float WalkMultiplier_Crouched = 0.1f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AimDownSight")
-	FVector SpringArmCameraOffset_AimDownSight;
+
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")

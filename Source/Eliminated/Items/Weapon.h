@@ -21,50 +21,76 @@ public:
 	// Sets default values for this actor's properties
 	AWeapon();
 	
+	/////////////////////////////////////////////////////////////////
+	// Components
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	USceneComponent* Root;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	USkeletalMeshComponent* SkeletalMesh;
 
+	////////////////////////////////////////////////////////////////
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Sound")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Sound")
 	USoundCue* FireSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Sound")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Sound")
 	USoundCue* ReloadSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Sound")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Sound")
 	USoundCue* EmptyClipSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	UParticleSystem* MuzzleFlashFX;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	UParticleSystemComponent* MuzzleFlashPSC;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	UParticleSystem* BulletTrailFX;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	UParticleSystem* BulletImpactWallFX;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	UMaterialInterface* BulletHoleDecal;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	FVector DecalSize;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	float DecalLifeSpan;
 
 	/** The smaller the number the bigger the render distance, 0-0.001 will render from far */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Visual Effects")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	float DecalFadeScreenSize;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Visual Effects")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Visual Effects")
 	FName MuzzleFlashSocketName = "MuzzleFlash";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon| Visual Effects")
+	float MuzzleFlashTime = 0.1;
+
+	/** Rounds to fire per minute */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	float RateOfFire = 0;
+
+	/** How many rounds total does the weapon have */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	int32 MaxAmmo = 100;
+
+	/** How many rounds total does a clip have */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	int32 AmmoPerClip = 10;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	float RecoilAmount = 0.1;
 
 protected:
 
@@ -99,34 +125,10 @@ protected:
 	void PlayWeaponImpactEffect(FVector TargetPoint);
 	void PlayWeaponTrailEffect(FVector TargetPoint);
 
-	//////////////////////////////////////////////////////////////////////////////////
-	// Customizable variables
-
-	/** Rounds to fire per minute */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-	float RateOfFire = 0;
-
-	/** How many rounds total does the weapon have */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-	int32 MaxAmmo = 100;
-
-	/** How many rounds total does a clip have */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-	int32 AmmoPerClip = 10;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-	float MuzzleFlashTime = 0.1;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-	float RecoilAmount = 0.1;
 
 
-
-
-
-
-	////////////////////////////////////////////////////////////////////////////////////
-	// Other
+	////////////////////////////////////////////////////////////////
+	// State
 
 	/** Total current ammo remaining */
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
@@ -152,4 +154,5 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
 	bool bIsReloading = false;
 
+	////////////////////////////////////////////////////////////////
 };
