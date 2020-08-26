@@ -23,8 +23,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	class UTextBlock* AmmoCounterText;
-public:
 
+public:
 	void ShowCrossHair();
 	void HideCrossHair();
 

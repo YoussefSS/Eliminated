@@ -62,18 +62,19 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
-	FVector DecalSize;
+	FVector DecalSize = FVector(7,7,7);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
-	float DecalLifeSpan;
+	float DecalLifeSpan = 5.f;
 
 	/** The smaller the number the bigger the render distance, 0-0.001 will render from far */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
-	float DecalFadeScreenSize;
+	float DecalFadeScreenSize = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Visual Effects")
 	FName MuzzleFlashSocketName = "MuzzleFlash";
 
+	/** Time to play the muzzle flash effect */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon| Visual Effects")
 	float MuzzleFlashTime = 0.1;
 
@@ -89,6 +90,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	int32 AmmoPerClip = 10;
 
+	/** Amount of recoil to add as controller pitch rotation */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	float RecoilAmount = 0.1;
 

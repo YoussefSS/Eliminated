@@ -49,7 +49,7 @@ void AWeapon::EnableWeapon()
 void AWeapon::DisableWeapon()
 {
 	bStartedFiring = false;
-	EndReload();
+	bIsReloading = false; // End reload in case the weapon is disabled before the reload animation finishes
 	SetActorHiddenInGame(true);
 	SkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetActorTickEnabled(false);
@@ -74,12 +74,16 @@ void AWeapon::Fire()
 {
 	if (!CanFire())
 	{
-		if (CurrentClipAmmo <= 0) // If out of ammo, play empty clip sound
+		if (CurrentClipAmmo <= 0 && !bIsReloading) // If out of ammo and not reloading, play empty clip sound
 		{
 			if (EmptyClipSound)
 			{
 				UGameplayStatics::PlaySoundAtLocation(this, EmptyClipSound, GetActorLocation());
 			}
+		}
+		else // else try and fire again (useful for when reloading, and the player keeps pressing, it will resume firing after reload
+		{
+			GetWorldTimerManager().SetTimer(FireShot_TimerHandle, this, &AWeapon::Fire, FireAfterTime);
 		}
 
 		return;
@@ -94,6 +98,7 @@ void AWeapon::Fire()
 	// Play Muzzle particle effect
 	if (MuzzleFlashFX)
 	{
+		StopMuzzleFlash();
 		MuzzleFlashPSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFlashFX, SkeletalMesh, MuzzleFlashSocketName);
 		GetWorldTimerManager().SetTimer(MuzzleFlash_TimerHandle, this, &AWeapon::StopMuzzleFlash, MuzzleFlashTime);
 	}
@@ -116,6 +121,8 @@ void AWeapon::Fire()
 		FHitResult Hit;
 		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParams)) // We used Visibility which means anything that is visible will block our trace
 		{
+			// TODO: Do another line trace to check if there is something in between the weapon and the hit location
+
 			// Hit logic here
 			LineTraceHitPoint = Hit.ImpactPoint;
 			PlayWeaponImpactEffect(LineTraceHitPoint);
@@ -153,12 +160,11 @@ void AWeapon::StopFire()
 
 bool AWeapon::CanReload()
 {
-	bool bCanReloadA = true;
-	CurrentAmmo <= 0 ? bCanReloadA = false : bCanReloadA = true;
+	if (bIsReloading) return false;
+	if (CurrentAmmo <= 0) return false;
+	if (CurrentClipAmmo >= AmmoPerClip) return false;
 
-	bool bCanReloadB = true;
-	CurrentClipAmmo >= AmmoPerClip ? bCanReloadB = false : bCanReloadB = true;
-	return bCanReloadA & bCanReloadB;
+	return true;
 }
 
 void AWeapon::StartReload()
@@ -170,6 +176,11 @@ void AWeapon::StartReload()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation());
 	}
+}
+
+void AWeapon::EndReload()
+{
+	bIsReloading = false;
 
 	// Calculate ammo
 	float AmmoNeededForReload = AmmoPerClip - CurrentClipAmmo; // The number of bullets needed for the reload
@@ -184,16 +195,9 @@ void AWeapon::StartReload()
 	}
 
 	CurrentAmmo -= ConsumedAmmo;
-	CurrentClipAmmo += ConsumedAmmo; 
-
-
+	CurrentClipAmmo += ConsumedAmmo;
 
 	OnWeaponAmmoChanged.Broadcast(CurrentAmmo, CurrentClipAmmo);
-}
-
-void AWeapon::EndReload()
-{
-	bIsReloading = false;
 }
 
 void AWeapon::PlayWeaponImpactEffect(FVector TargetPoint)

@@ -11,6 +11,7 @@ enum class EPlayerStatus : uint8
 {
 	EMS_NoWeapon						UMETA(DisplayName = "NoWeapon"),
 	EMS_DownSightsPistol				UMETA(DisplayName = "DownSightsPistol"),
+	EMS_DownSightsRifle					UMETA(DisplayName = "DownSightsRifle"),
 
 	EMS_MAX								UMETA(DisplayName = "DefaultMAX")
 };
@@ -38,6 +39,7 @@ protected:
 
 	////////////////////////////////////////////////////////////////
 	// Input Functions
+
 	void MousePitchInput(float Val);
 	void MouseYawInput(float Val);
 
@@ -51,12 +53,12 @@ protected:
 
 	void StartSprint();
 	void StopSprint();
-	bool bIsSprinting;
+	
 
 	void ToggleCrouch();
 	void StartCrouch();
 	void StopCrouch();
-	bool bIsCrouched;
+	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,  Category = "Camera")
 	float CamHeightNormal = 0;
@@ -65,7 +67,7 @@ protected:
 
 	void StartAimDownSights();
 	void StopAimDownSights();
-	bool bIsAimingDownSights;
+	
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Camera")
 	void StartAimDownSights_Event();
@@ -77,7 +79,15 @@ protected:
 
 	/** Try to reload when pressing the reload button */
 	void TryReload();
-	bool bIsReloading = false;
+
+
+	void SelectWeaponOne();
+	void SelectWeaponTwo();
+	void SelectNextWeapon();
+	void SelectPreviousWeapon();
+	
+
+
 
 	////////////////////////////////////////////////////////////////
 
@@ -100,10 +110,11 @@ public:
 
 	bool IsReloading() { return bIsReloading; }
 
-	bool IsCrouched() { return bIsCrouched; }
+	bool IsCrouched() { return bIsCrouching; }
 
+	/** Called when the reload animation ends (from animinstance)  */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void StopReload();
+	void OnEndReload();
 
 	UFUNCTION()
 	void OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
@@ -114,21 +125,31 @@ public:
 
 protected:
 
+	void ChangeCurrentWeaponToSelectedWeapon(bool bSetPlayerStatus = true);
 	void DisableCurrentWeapon();
 	void EnablePistol();
+	void EnableRifle();
 
 	/** Do the reload action, only call this from TryReload */
 	void DoReload();
 
+protected:
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
-	AWeapon* CurrentWeapon;
+	/** The maximum number of weapon slots */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	int32 MaxNumberOfWeaponSlots = 2;
 
 	/** Should the weapon automatically reload if the clip is empty */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	bool bAutoReloadIfClipIsEmpty = true;
 
-	//////////////////////////////////////
+	/** Should the character keep holding the weapon in the hand even if they are not aiming down sights  */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	bool bKeepHoldingWeaponWhileNotAiming = true;
+
+
+
+	////////////////////////////////////////////////////////
 	// PISTOL
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Pistol")
@@ -146,7 +167,28 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Pistol")
 	TSubclassOf<UCameraShake> PistolFireCamShake;
 
-	//////////////////////////////////////
+	////////////////////////////////////////////////////////
+
+
+	////////////////////////////////////////////////////////
+	// RIFLE
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Rifle")
+	TSubclassOf <AWeapon> RifleClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Rifle")
+	FName RifleAttachSocketName = "RifleSocket";
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon| Rifle")
+	AWeapon* Rifle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon| Rifle")
+	class UAnimMontage* RifleMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Rifle")
+	TSubclassOf<UCameraShake> RifleFireCamShake;
+
+	////////////////////////////////////////////////////////
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "540.0", UIMin = "0.0", UIMax = "540.0"), Category = "Movement")
 	float CharacterRotationRateWalk = 540.0f;
@@ -174,10 +216,32 @@ protected:
 
 
 
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	EPlayerStatus PlayerStatus = EPlayerStatus::EMS_NoWeapon;
 
+protected:
+
+	////////////////////////////////////////////////////////
+	// STATE
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Movement")
+	bool bIsSprinting;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Movement")
+	bool bIsAimingDownSights;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Movement")
+	bool bIsCrouching;
+
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
+	bool bIsReloading = false;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
+	int32 CurrentSelectedWeaponSlot = 1;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
+	AWeapon* CurrentWeapon;
 
 
 
