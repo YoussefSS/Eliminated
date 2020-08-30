@@ -167,7 +167,11 @@ void APlayerCharacter::StartAimDownSights() // Implementation for C++ method (ca
 
 	// Setting the player to look at the camera
 	bUseControllerRotationYaw = true;
-	GetCharacterMovement()->bOrientRotationToMovement = false;
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+	}
+	
 
 	// Showing crosshair
 	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
@@ -193,7 +197,10 @@ void APlayerCharacter::StopAimDownSights()
 
 	// Setting the player to run freely without looking at the camera
 	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+	}
 
 	// Hiding crosshair
 	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
@@ -551,6 +558,10 @@ void APlayerCharacter::EnablePistol()
 
 			Pistol->OnShotFired.AddDynamic(this, &APlayerCharacter::OnShotFired);
 		}
+		else
+		{
+			return;
+		}
 
 		EnablePistol();
 	}
@@ -574,6 +585,10 @@ void APlayerCharacter::EnableRifle()
 			OnWeaponAmmoChanged(Rifle->GetCurrentAmmoCount(), Rifle->GetCurrentClipAmmoCount()); // Calling it now to update the ammo hud counter
 
 			Rifle->OnShotFired.AddDynamic(this, &APlayerCharacter::OnShotFired);
+		}
+		else
+		{
+			return;
 		}
 
 		EnableRifle();

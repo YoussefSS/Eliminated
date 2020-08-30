@@ -194,9 +194,9 @@ protected:
 	float CharacterRotationRateWalk = 540.0f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "540.0", UIMin = "0.0", UIMax = "540.0"), Category = "Movement")
 	float CharacterRotationRateFalling = 100.0f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "100.0", ClampMax = "700.0", UIMin = "100.0", UIMax = "700.0"), Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "700.0", UIMin = "0.0", UIMax = "700.0"), Category = "Movement")
 	float SpringArmDistance_Regular = 600.0f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "100.0", ClampMax = "700.0", UIMin = "100.0", UIMax = "700.0"), Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "700.0", UIMin = "0.0", UIMax = "700.0"), Category = "Movement")
 	float SpringArmDistance_AimDownSight = 300.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement| No Weapon")
