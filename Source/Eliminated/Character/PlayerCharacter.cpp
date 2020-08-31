@@ -76,6 +76,8 @@ void APlayerCharacter::BeginPlay()
 	{
 		HealthComponent->OnHealthChanged.AddDynamic(this, &APlayerCharacter::OnHealthChanged);
 	}
+
+	OnTakePointDamage.AddDynamic(this, &APlayerCharacter::HandleTakePointDamage);
 }
 
 void APlayerCharacter::MousePitchInput(float Val)
@@ -315,6 +317,8 @@ void APlayerCharacter::DoReload()
 
 void APlayerCharacter::OnHealthChanged(UHealthComponent* HealthComp, float CurrentHealth, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
 {
+	if (bIsDead) return;
+
 	if (CurrentHealth <= 0)
 	{
 		bIsDead = true;
@@ -337,12 +341,15 @@ void APlayerCharacter::OnHealthChanged(UHealthComponent* HealthComp, float Curre
 			GetMesh()->SetAllBodiesSimulatePhysics(true);
 			GetMesh()->SetSimulatePhysics(true);
 			GetMesh()->WakeAllRigidBodies();
+			GetMesh()->AddImpulseAtLocation(LastShotDirection*40000, LastShotHitLocation);
 		}
-
-		UE_LOG(LogTemp, Warning, TEXT("HEALTHCHANGEDDUDE LESSTHAN0"));
 	}
+}
 
-	UE_LOG(LogTemp, Warning, TEXT("WTF"));
+void APlayerCharacter::HandleTakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser)
+{
+	LastShotHitLocation = HitLocation;
+	LastShotDirection = ShotFromDirection;
 }
 
 void APlayerCharacter::OnEndReload() /** Called when the reload animation ends from animinstance */

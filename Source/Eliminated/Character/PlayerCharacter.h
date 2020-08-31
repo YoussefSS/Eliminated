@@ -143,6 +143,12 @@ protected:
 	UFUNCTION()
 	void OnHealthChanged(UHealthComponent* HealthComp, float CurrentHealth, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
+	UFUNCTION()
+	void HandleTakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
+
+	FVector LastShotHitLocation;
+	FVector LastShotDirection;
+
 protected:
 
 	/** The maximum number of weapon slots */
