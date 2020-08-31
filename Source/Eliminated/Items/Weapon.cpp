@@ -8,6 +8,8 @@
 #include "Particles\ParticleSystemComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Components\DecalComponent.h"
+#include "PhysicalMaterials\PhysicalMaterial.h"
+#include "Eliminated/Eliminated.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -118,21 +120,29 @@ void AWeapon::Fire()
 		QueryParams.AddIgnoredActor(GetOwner());
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.bTraceComplex = true; // Will trace off each individial triangle of the mesh we are hitting (more expensive & more accurate)
+		QueryParams.bReturnPhysicalMaterial = true;
 
 		FVector LineTraceHitPoint = TraceEnd;
 		FHitResult Hit;
-		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParams)) // We used Visibility which means anything that is visible will block our trace
+		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams)) // We used Visibility which means anything that is visible will block our trace
 		{
-			// TODO: Do another line trace to check if there is something in between the weapon and the hit location
+			// TODO: Do another line trace to check if there is something in between the weapon and the hit location, NO NEED
+			
+			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 
 			// Hit logic here
 			AActor* HitActor = Hit.GetActor();
-			UGameplayStatics::ApplyPointDamage(HitActor, 10, ShotDirection, Hit, GetOwner()->GetInstigatorController(), this, DamageType);
+			float ActualDamage = BaseDamage;
+			if (SurfaceType == SURFACE_FLESHVULNERABLE)
+			{
+				ActualDamage *= HeadshotDamageMultiplier;
+			}
+			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, GetOwner()->GetInstigatorController(), this, DamageType);
 			LineTraceHitPoint = Hit.ImpactPoint;
 
-
 			
-			PlayWeaponImpactEffect(LineTraceHitPoint);
+
+			PlayWeaponImpactEffect(LineTraceHitPoint, SurfaceType);
 
 			// Bullet hole decal
 			if (BulletHoleDecal)
@@ -207,9 +217,25 @@ void AWeapon::EndReload()
 	OnWeaponAmmoChanged.Broadcast(CurrentAmmo, CurrentClipAmmo);
 }
 
-void AWeapon::PlayWeaponImpactEffect(FVector TargetPoint)
+void AWeapon::PlayWeaponImpactEffect(FVector TargetPoint, EPhysicalSurface SurfaceType)
 {
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactWallFX, TargetPoint);
+	UParticleSystem* SelectedEffect = nullptr;
+	switch (SurfaceType)
+	{
+	case SURFACE_FLESHDEFAULT:
+	case SURFACE_FLESHVULNERABLE:
+		SelectedEffect = FleshImpactFX;
+		break;
+
+	default:
+		SelectedEffect = DefaultImpactFX;
+		break;
+	}
+
+	if (SelectedEffect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, TargetPoint);
+	}
 }
 
 void AWeapon::PlayWeaponTrailEffect(FVector TargetPoint)

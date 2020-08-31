@@ -53,7 +53,10 @@ public:
 	UParticleSystem* BulletTrailFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
-	UParticleSystem* BulletImpactWallFX;
+	UParticleSystem* DefaultImpactFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
+	UParticleSystem* FleshImpactFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	UMaterialInterface* BulletHoleDecal;
@@ -79,6 +82,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon| Visual Effects")
 	float MuzzleFlashTime = 0.1;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	float BaseDamage = 20;
+
+	/** How many times the BaseDamage should headshots be */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	float HeadshotDamageMultiplier = 5;
+
 	/** Rounds to fire per minute */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	float RateOfFire = 0;
@@ -97,6 +107,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<UDamageType> DamageType;
+
 
 protected:
 
@@ -128,7 +139,7 @@ public:
 	float GetRecoilAmount() { return RecoilAmount; }
 protected:
 
-	void PlayWeaponImpactEffect(FVector TargetPoint);
+	void PlayWeaponImpactEffect(FVector TargetPoint, EPhysicalSurface SurfaceType);
 	void PlayWeaponTrailEffect(FVector TargetPoint);
 
 

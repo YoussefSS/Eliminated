@@ -11,6 +11,7 @@
 #include "Eliminated\Character\PlayerCharacterController.h"
 #include "Components\CapsuleComponent.h"
 #include "Eliminated\Components\HealthComponent.h"
+#include "Eliminated\Eliminated.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -20,7 +21,7 @@ APlayerCharacter::APlayerCharacter()
 
 	if (GetMesh())
 	{
-		GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		GetMesh()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Block);
 	}
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
@@ -39,7 +40,10 @@ APlayerCharacter::APlayerCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 
-	
+	if (GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
+	}
 
 	if (GetCharacterMovement())
 	{
