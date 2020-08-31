@@ -110,7 +110,9 @@ void AWeapon::Fire()
 		FVector EyeLocation;
 		FRotator EyeRotation;
 		GetOwner()->GetActorEyesViewPoint(EyeLocation, EyeRotation); // These are out parameters
-		FVector TraceEnd = EyeLocation + (EyeRotation.Vector() * 10000); // The end is the direction we are looking + a big number
+
+		FVector ShotDirection = EyeRotation.Vector();
+		FVector TraceEnd = EyeLocation + (ShotDirection * 10000); // The end is the direction we are looking + a big number
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(GetOwner());
@@ -124,7 +126,12 @@ void AWeapon::Fire()
 			// TODO: Do another line trace to check if there is something in between the weapon and the hit location
 
 			// Hit logic here
+			AActor* HitActor = Hit.GetActor();
+			UGameplayStatics::ApplyPointDamage(HitActor, 10, ShotDirection, Hit, GetOwner()->GetInstigatorController(), this, DamageType);
 			LineTraceHitPoint = Hit.ImpactPoint;
+
+
+			
 			PlayWeaponImpactEffect(LineTraceHitPoint);
 
 			// Bullet hole decal

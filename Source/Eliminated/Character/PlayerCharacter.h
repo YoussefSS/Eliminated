@@ -18,6 +18,8 @@ enum class EPlayerStatus : uint8
 
 
 class AWeapon;
+class UDamageType;
+
 UCLASS()
 class ELIMINATED_API APlayerCharacter : public ACharacter
 {
@@ -31,6 +33,8 @@ public:
 	class USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	class UCameraComponent* Camera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	class UHealthComponent* HealthComponent;
 
 protected:
 	// Called when the game starts or when spawned
@@ -112,6 +116,8 @@ public:
 
 	bool IsCrouched() { return bIsCrouching; }
 
+	bool IsDead() { return bIsDead; }
+
 	/** Called when the reload animation ends (from animinstance)  */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void OnEndReload();
@@ -132,6 +138,10 @@ protected:
 
 	/** Do the reload action, only call this from TryReload */
 	void DoReload();
+
+	/** When health is changed from the HealthComponent */
+	UFUNCTION()
+	void OnHealthChanged(UHealthComponent* HealthComp, float CurrentHealth, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 protected:
 
@@ -233,6 +243,8 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Movement")
 	bool bIsCrouching;
 
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Movement")
+	bool bIsDead = false;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
 	bool bIsReloading = false;

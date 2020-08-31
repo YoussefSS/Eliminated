@@ -12,6 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShotFired);
 class USoundCue;
 class UParticleSystem;
 class UParticleSystemComponent;
+class UDamageType;
 UCLASS()
 class ELIMINATED_API AWeapon : public AActor
 {
@@ -93,6 +94,9 @@ protected:
 	/** Amount of recoil to add as controller pitch rotation */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	float RecoilAmount = 0.1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TSubclassOf<UDamageType> DamageType;
 
 protected:
 

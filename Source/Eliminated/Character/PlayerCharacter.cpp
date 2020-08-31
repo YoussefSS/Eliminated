@@ -9,12 +9,19 @@
 #include "Engine\World.h"
 #include "Components\SkeletalMeshComponent.h"
 #include "Eliminated\Character\PlayerCharacterController.h"
+#include "Components\CapsuleComponent.h"
+#include "Eliminated\Components\HealthComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	if (GetMesh())
+	{
+		GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	}
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
 	CameraBoom->SetupAttachment(GetRootComponent());
@@ -24,6 +31,8 @@ APlayerCharacter::APlayerCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
 	// Allowing the player to move freely in all directions without having to look at where the camera is looking
 	bUseControllerRotationYaw = false;
@@ -61,6 +70,11 @@ void APlayerCharacter::BeginPlay()
 	if (bKeepHoldingWeaponWhileNotAiming)
 	{
 		ChangeCurrentWeaponToSelectedWeapon(false);
+	}
+
+	if (HealthComponent)
+	{
+		HealthComponent->OnHealthChanged.AddDynamic(this, &APlayerCharacter::OnHealthChanged);
 	}
 }
 
@@ -297,6 +311,38 @@ void APlayerCharacter::DoReload()
 			AnimInstance->Montage_JumpToSection(FName("Reload"), RifleMontage);
 		}
 	}
+}
+
+void APlayerCharacter::OnHealthChanged(UHealthComponent* HealthComp, float CurrentHealth, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (CurrentHealth <= 0)
+	{
+		bIsDead = true;
+
+		if (GetCharacterMovement())
+		{
+			GetCharacterMovement()->StopMovementImmediately();
+			GetCharacterMovement()->DisableMovement();
+		}
+
+		if (GetCapsuleComponent())
+		{
+			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+
+		// Turning on ragdoll
+		if (GetMesh())
+		{
+			GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			GetMesh()->SetAllBodiesSimulatePhysics(true);
+			GetMesh()->SetSimulatePhysics(true);
+			GetMesh()->WakeAllRigidBodies();
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("HEALTHCHANGEDDUDE LESSTHAN0"));
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("WTF"));
 }
 
 void APlayerCharacter::OnEndReload() /** Called when the reload animation ends from animinstance */
