@@ -2,4 +2,27 @@
 
 
 #include "AICharacter.h"
+#include "Eliminated\AI\CustomTargetPoint.h"
 
+ACustomTargetPoint* AAICharacter::GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime)
+{
+	CurrentTargetPointIndex++;
+
+	if (CurrentTargetPointIndex >= PatrolPoints.Num())
+	{
+		CurrentTargetPointIndex = 0;
+	}
+
+	if (PatrolPoints[CurrentTargetPointIndex])
+	{
+		OutLocation = PatrolPoints[CurrentTargetPointIndex]->GetActorLocation();
+		OutWaitTime = PatrolPoints[CurrentTargetPointIndex]->GetSecondsToStay();
+	}
+	else
+	{
+		OutLocation = FVector::ZeroVector;
+		OutWaitTime = 0.f;
+	}
+
+	return PatrolPoints[CurrentTargetPointIndex];
+}
