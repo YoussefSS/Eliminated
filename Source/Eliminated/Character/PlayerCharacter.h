@@ -19,6 +19,7 @@ enum class EPlayerStatus : uint8
 
 class AWeapon;
 class UDamageType;
+class USoundCue;
 
 UCLASS()
 class ELIMINATED_API APlayerCharacter : public ACharacter
@@ -33,6 +34,9 @@ public:
 	class USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	class UCameraComponent* Camera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	class USphereComponent* PunchSphereComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	class UHealthComponent* HealthComponent;
 
@@ -90,8 +94,7 @@ protected:
 	void SelectNextWeapon();
 	void SelectPreviousWeapon();
 	
-
-
+	void StartPunch();
 
 	////////////////////////////////////////////////////////////////
 
@@ -129,6 +132,14 @@ public:
 	UFUNCTION()
 	void OnShotFired();
 
+	/** Do the punching logic */
+	UFUNCTION(BlueprintCallable, Category = "Punching")
+	void DoPunch();
+
+	/** End the punching (enable movement again) */
+	UFUNCTION(BlueprintCallable, Category = "Punching")
+	void EndPunch();
+
 protected:
 
 	void ChangeCurrentWeaponToSelectedWeapon(bool bSetPlayerStatus = true);
@@ -146,10 +157,19 @@ protected:
 	UFUNCTION()
 	void HandleTakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
 
-	FVector LastShotHitLocation;
-	FVector LastShotDirection;
-
 protected:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Punching")
+	class UAnimMontage* PunchMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Punching")
+	float PunchDamage = 1000;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Punching")
+	TSubclassOf<class UDamageType> PunchDamageType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Punching")
+	USoundCue* PunchSound;
 
 	/** The maximum number of weapon slots */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
@@ -162,7 +182,6 @@ protected:
 	/** Should the character keep holding the weapon in the hand even if they are not aiming down sights  */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	bool bKeepHoldingWeaponWhileNotAiming = true;
-
 
 
 	////////////////////////////////////////////////////////
@@ -261,6 +280,10 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Weapon")
 	AWeapon* CurrentWeapon;
 
+	FVector LastShotHitLocation;
+	FVector LastShotDirection;
 
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Punching")
+	APlayerCharacter* AIInCloseProximity;
 
 };

@@ -12,6 +12,10 @@
 #include "Components\CapsuleComponent.h"
 #include "Eliminated\Components\HealthComponent.h"
 #include "Eliminated\Eliminated.h"
+#include "Components\SphereComponent.h"
+#include "Kismet\GameplayStatics.h"
+#include "Kismet\KismetMathLibrary.h"
+#include "Sound\SoundCue.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -32,6 +36,12 @@ APlayerCharacter::APlayerCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
+
+	PunchSphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("PunchSphereComponent"));
+	PunchSphereComponent->SetupAttachment(GetRootComponent());
+	PunchSphereComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	PunchSphereComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	PunchSphereComponent->SetSphereRadius(600.f);
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
@@ -295,6 +305,105 @@ void APlayerCharacter::SelectPreviousWeapon()
 	ChangeCurrentWeaponToSelectedWeapon(bIsAimingDownSights);
 }
 
+void APlayerCharacter::StartPunch()
+{
+	// Play animation
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		if (PunchMontage)
+		{
+			AnimInstance->Montage_Play(PunchMontage, 1.f);
+			AnimInstance->Montage_JumpToSection(FName("Punch"), PunchMontage);
+		}
+	}
+
+	// Stop Movement
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->DisableMovement();
+	}
+	if (GetController())
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		DisableInput(PC);
+	}
+
+	// Look at AI logic
+	TArray<AActor*> OverlappingActors;
+	PunchSphereComponent->GetOverlappingActors(OverlappingActors);
+
+	APlayerCharacter* ClosestAI = nullptr;
+	float MinDistanceToAI = INFINITY;
+	for (AActor* OverlappedActor : OverlappingActors)
+	{
+		APlayerCharacter* AIChar = Cast<APlayerCharacter>(OverlappedActor);
+		if (AIChar)
+		{
+			if (AIChar == this)
+			{
+				continue;
+			}
+
+			if (ClosestAI == nullptr)
+			{
+				ClosestAI = AIChar;
+			}
+			else
+			{
+				float DistanceToAI = (AIChar->GetActorLocation() - GetActorLocation()).Size();
+				if (DistanceToAI < MinDistanceToAI)
+				{
+					MinDistanceToAI = DistanceToAI;
+					ClosestAI = AIChar;
+				}
+			}
+
+		}
+	}
+
+	AIInCloseProximity = nullptr;
+	if (ClosestAI)
+	{
+		FRotator LookAtAIRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), ClosestAI->GetActorLocation());
+		LookAtAIRotation.Pitch = 0;
+		LookAtAIRotation.Roll = 0;
+		SetActorRotation(LookAtAIRotation);
+		AIInCloseProximity = ClosestAI;
+	}
+}
+
+void APlayerCharacter::DoPunch()
+{
+	// Punch damage logic
+	if (AIInCloseProximity)
+	{
+		UGameplayStatics::ApplyDamage(AIInCloseProximity, PunchDamage, GetInstigatorController(), this, PunchDamageType);
+
+		if (PunchSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, PunchSound, GetActorLocation());
+		}
+	}
+}
+
+void APlayerCharacter::EndPunch()
+{
+	// Start Movement again
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+	if (GetController())
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		EnableInput(PC);
+	}
+
+	AIInCloseProximity = nullptr;
+}
+
 void APlayerCharacter::DoReload()
 {
 	ensure(CurrentWeapon);
@@ -548,6 +657,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("NextWeapon", EInputEvent::IE_Pressed, this, &APlayerCharacter::SelectNextWeapon);
 	PlayerInputComponent->BindAction("PreviousWeapon", EInputEvent::IE_Pressed, this, &APlayerCharacter::SelectPreviousWeapon);
+
+	PlayerInputComponent->BindAction("Punch", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartPunch);
 }
 
 FVector APlayerCharacter::GetPawnViewLocation() const
