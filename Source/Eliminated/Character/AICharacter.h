@@ -14,9 +14,18 @@ UCLASS()
 class ELIMINATED_API AAICharacter : public APlayerCharacter
 {
 	GENERATED_BODY()
-	
 
 public:
+	AAICharacter();
+
+protected:
+	
+	virtual void BeginPlay() override;
+
+public:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
+	float MovementSpeedPatrolling = 180;
 
 	/** Does this guard patrol between 2 or more points */
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "AI")
@@ -30,4 +39,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	ACustomTargetPoint* GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime);
+
+
 };

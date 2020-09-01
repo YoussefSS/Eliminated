@@ -3,6 +3,23 @@
 
 #include "AICharacter.h"
 #include "Eliminated\AI\CustomTargetPoint.h"
+#include "GameFramework\CharacterMovementComponent.h"
+
+AAICharacter::AAICharacter()
+{
+
+}
+
+void AAICharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = MovementSpeedPatrolling;
+	}
+}
+
 
 ACustomTargetPoint* AAICharacter::GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime)
 {
@@ -26,3 +43,4 @@ ACustomTargetPoint* AAICharacter::GetNextTargetPoint(FVector& OutLocation, float
 
 	return PatrolPoints[CurrentTargetPointIndex];
 }
+
