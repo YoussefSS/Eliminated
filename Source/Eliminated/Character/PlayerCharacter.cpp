@@ -41,7 +41,7 @@ APlayerCharacter::APlayerCharacter()
 	PunchSphereComponent->SetupAttachment(GetRootComponent());
 	PunchSphereComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	PunchSphereComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	PunchSphereComponent->SetSphereRadius(600.f);
+	PunchSphereComponent->SetSphereRadius(200.f);
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
