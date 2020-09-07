@@ -260,8 +260,8 @@ void APlayerCharacter::StopFire()
 void APlayerCharacter::TryReload()
 {
 	if (!CurrentWeapon) return;
-	if (!bIsAimingDownSights) return;
 
+	
 	if (CurrentWeapon->CanReload())
 	{
 		DoReload();
@@ -408,6 +408,15 @@ void APlayerCharacter::DoReload()
 {
 	ensure(CurrentWeapon);
 
+	// Reloading while not aiming down sights
+	bool bTempWasntAimingDownSights = false;
+	if (!bIsAimingDownSights)
+	{
+		StartAimDownSights();
+		bTempWasntAimingDownSights = true;
+	}
+	//
+
 	bIsReloading = true;
 	CurrentWeapon->StartReload();
 
@@ -425,6 +434,12 @@ void APlayerCharacter::DoReload()
 			AnimInstance->Montage_Play(RifleMontage, 1.2f);
 			AnimInstance->Montage_JumpToSection(FName("Reload"), RifleMontage);
 		}
+	}
+
+
+	if (bTempWasntAimingDownSights)
+	{
+		StopAimDownSights();
 	}
 }
 
