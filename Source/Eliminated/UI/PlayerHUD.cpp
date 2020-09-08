@@ -4,7 +4,7 @@
 #include "PlayerHUD.h"
 #include "Components\Image.h"
 #include "Components\TextBlock.h"
-#include "Eliminated\Character\PlayerCharacter.h"
+#include "Eliminated\Character\SCharacterBase.h"
 #include "Kismet\GameplayStatics.h"
 
 bool UPlayerHUD::Initialize()

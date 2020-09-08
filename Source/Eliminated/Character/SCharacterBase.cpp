@@ -1,14 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PlayerCharacter.h"
+#include "SCharacterBase.h"
 #include "GameFramework\SpringArmComponent.h"
 #include "Camera\CameraComponent.h"
 #include "GameFramework\CharacterMovementComponent.h"
 #include "Eliminated\Items\Weapon.h"
 #include "Engine\World.h"
 #include "Components\SkeletalMeshComponent.h"
-#include "Eliminated\Character\PlayerCharacterController.h"
+#include "Eliminated\Character\SCharacterBaseController.h"
 #include "Components\CapsuleComponent.h"
 #include "Eliminated\Components\HealthComponent.h"
 #include "Eliminated\Eliminated.h"
@@ -18,7 +18,7 @@
 #include "Sound\SoundCue.h"
 
 // Sets default values
-APlayerCharacter::APlayerCharacter()
+ASCharacterBase::ASCharacterBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -68,7 +68,7 @@ APlayerCharacter::APlayerCharacter()
 }
 
 // Called when the game starts or when spawned
-void APlayerCharacter::BeginPlay()
+void ASCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
@@ -88,41 +88,41 @@ void APlayerCharacter::BeginPlay()
 
 	if (HealthComponent)
 	{
-		HealthComponent->OnHealthChanged.AddDynamic(this, &APlayerCharacter::OnHealthChanged);
+		HealthComponent->OnHealthChanged.AddDynamic(this, &ASCharacterBase::OnHealthChanged);
 	}
 
-	OnTakePointDamage.AddDynamic(this, &APlayerCharacter::HandleTakePointDamage);
+	OnTakePointDamage.AddDynamic(this, &ASCharacterBase::HandleTakePointDamage);
 }
 
-void APlayerCharacter::MousePitchInput(float Val)
+void ASCharacterBase::MousePitchInput(float Val)
 {
 	AddControllerPitchInput(Val);
 }
 
-void APlayerCharacter::MouseYawInput(float Val)
+void ASCharacterBase::MouseYawInput(float Val)
 {
 	AddControllerYawInput(Val);
 }
 
-void APlayerCharacter::MoveForward(float Val)
+void ASCharacterBase::MoveForward(float Val)
 {
 	// Setting the axis value to be used on the next frame
 	MoveForwardAxisVal = Val;
 }
 
-void APlayerCharacter::MoveRight(float Val)
+void ASCharacterBase::MoveRight(float Val)
 {
 	// Setting the axis value to be used on the next frame
 	MoveRightAxisVal = Val;
 }
 
-void APlayerCharacter::Jump()
+void ASCharacterBase::Jump()
 {
 	StopCrouch();
 	Super::Jump();
 }
 
-void APlayerCharacter::StartSprint()
+void ASCharacterBase::StartSprint()
 {
 	if (bIsCrouching)
 	{
@@ -131,12 +131,12 @@ void APlayerCharacter::StartSprint()
 	bIsSprinting = true;
 }
 
-void APlayerCharacter::StopSprint()
+void ASCharacterBase::StopSprint()
 {
 	bIsSprinting = false;
 }
 
-void APlayerCharacter::ToggleCrouch()
+void ASCharacterBase::ToggleCrouch()
 {
 	if (!bIsCrouching)
 	{
@@ -148,7 +148,7 @@ void APlayerCharacter::ToggleCrouch()
 	}
 }
 
-void APlayerCharacter::StartCrouch()
+void ASCharacterBase::StartCrouch()
 {
 	StopSprint();
 	Super::Crouch();
@@ -161,7 +161,7 @@ void APlayerCharacter::StartCrouch()
 	}
 }
 
-void APlayerCharacter::StopCrouch()
+void ASCharacterBase::StopCrouch()
 {
 	Super::UnCrouch();
 	bIsCrouching = false;
@@ -173,7 +173,7 @@ void APlayerCharacter::StopCrouch()
 	}
 }
 
-void APlayerCharacter::StartAimDownSights() // Implementation for C++ method (can be overriden in BP)
+void ASCharacterBase::StartAimDownSights() // Implementation for C++ method (can be overriden in BP)
 {
 	// Start the BP timeline event
 	StartAimDownSights_Event(); 
@@ -204,14 +204,14 @@ void APlayerCharacter::StartAimDownSights() // Implementation for C++ method (ca
 	
 
 	// Showing crosshair
-	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
+	ASCharacterBaseController* PC = Cast<ASCharacterBaseController>(GetController());
 	if (PC)
 	{
 		PC->ShowCrossHair();
 	}
 }
 
-void APlayerCharacter::StopAimDownSights()
+void ASCharacterBase::StopAimDownSights()
 {
 	StopAimDownSights_Event();
 
@@ -233,7 +233,7 @@ void APlayerCharacter::StopAimDownSights()
 	}
 
 	// Hiding crosshair
-	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
+	ASCharacterBaseController* PC = Cast<ASCharacterBaseController>(GetController());
 	if (PC)
 	{
 		PC->HideCrossHair();
@@ -241,7 +241,7 @@ void APlayerCharacter::StopAimDownSights()
 	bIsAimingDownSights = false;
 }
 
-void APlayerCharacter::StartFire()
+void ASCharacterBase::StartFire()
 {
 	if (CurrentWeapon && bIsAimingDownSights)
 	{
@@ -249,7 +249,7 @@ void APlayerCharacter::StartFire()
 	}
 }
 
-void APlayerCharacter::StopFire()
+void ASCharacterBase::StopFire()
 {
 	if (CurrentWeapon)
 	{
@@ -257,7 +257,7 @@ void APlayerCharacter::StopFire()
 	}
 }
 
-void APlayerCharacter::TryReload()
+void ASCharacterBase::TryReload()
 {
 	if (!CurrentWeapon) return;
 
@@ -268,7 +268,7 @@ void APlayerCharacter::TryReload()
 	}
 }
 
-void APlayerCharacter::SelectWeaponOne()
+void ASCharacterBase::SelectWeaponOne()
 {
 	CurrentSelectedWeaponSlot = 1;
 
@@ -276,14 +276,14 @@ void APlayerCharacter::SelectWeaponOne()
 	ChangeCurrentWeaponToSelectedWeapon(bIsAimingDownSights);
 }
 
-void APlayerCharacter::SelectWeaponTwo()
+void ASCharacterBase::SelectWeaponTwo()
 {
 	CurrentSelectedWeaponSlot = 2;
 
 	ChangeCurrentWeaponToSelectedWeapon(bIsAimingDownSights);
 }
 
-void APlayerCharacter::SelectNextWeapon()
+void ASCharacterBase::SelectNextWeapon()
 {
 	CurrentSelectedWeaponSlot++;
 	if (CurrentSelectedWeaponSlot >= MaxNumberOfWeaponSlots + 1)
@@ -294,7 +294,7 @@ void APlayerCharacter::SelectNextWeapon()
 	ChangeCurrentWeaponToSelectedWeapon(bIsAimingDownSights);
 }
 
-void APlayerCharacter::SelectPreviousWeapon()
+void ASCharacterBase::SelectPreviousWeapon()
 {
 	CurrentSelectedWeaponSlot--;
 	if (CurrentSelectedWeaponSlot <= 0)
@@ -305,7 +305,7 @@ void APlayerCharacter::SelectPreviousWeapon()
 	ChangeCurrentWeaponToSelectedWeapon(bIsAimingDownSights);
 }
 
-void APlayerCharacter::StartPunch()
+void ASCharacterBase::StartPunch()
 {
 	// Play animation
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -334,11 +334,11 @@ void APlayerCharacter::StartPunch()
 	TArray<AActor*> OverlappingActors;
 	PunchSphereComponent->GetOverlappingActors(OverlappingActors);
 
-	APlayerCharacter* ClosestAI = nullptr;
+	ASCharacterBase* ClosestAI = nullptr;
 	float MinDistanceToAI = INFINITY;
 	for (AActor* OverlappedActor : OverlappingActors)
 	{
-		APlayerCharacter* AIChar = Cast<APlayerCharacter>(OverlappedActor);
+		ASCharacterBase* AIChar = Cast<ASCharacterBase>(OverlappedActor);
 		if (AIChar)
 		{
 			if (AIChar == this)
@@ -374,7 +374,7 @@ void APlayerCharacter::StartPunch()
 	}
 }
 
-void APlayerCharacter::DoPunch()
+void ASCharacterBase::DoPunch()
 {
 	// Punch damage logic
 	if (AIInCloseProximity)
@@ -388,7 +388,7 @@ void APlayerCharacter::DoPunch()
 	}
 }
 
-void APlayerCharacter::EndPunch()
+void ASCharacterBase::EndPunch()
 {
 	// Start Movement again
 	if (GetCharacterMovement())
@@ -404,7 +404,7 @@ void APlayerCharacter::EndPunch()
 	AIInCloseProximity = nullptr;
 }
 
-void APlayerCharacter::DoReload()
+void ASCharacterBase::DoReload()
 {
 	ensure(CurrentWeapon);
 
@@ -443,7 +443,7 @@ void APlayerCharacter::DoReload()
 	}
 }
 
-void APlayerCharacter::OnHealthChanged(UHealthComponent* HealthComp, float CurrentHealth, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
+void ASCharacterBase::OnHealthChanged(UHealthComponent* HealthComp, float CurrentHealth, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
 {
 	if (bIsDead) return;
 
@@ -474,13 +474,13 @@ void APlayerCharacter::OnHealthChanged(UHealthComponent* HealthComp, float Curre
 	}
 }
 
-void APlayerCharacter::HandleTakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser)
+void ASCharacterBase::HandleTakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser)
 {
 	LastShotHitLocation = HitLocation;
 	LastShotDirection = ShotFromDirection;
 }
 
-void APlayerCharacter::OnEndReload() /** Called when the reload animation ends from animinstance */
+void ASCharacterBase::OnEndReload() /** Called when the reload animation ends from animinstance */
 {
 	bIsReloading = false;
 	if (!CurrentWeapon) return;
@@ -498,7 +498,7 @@ void APlayerCharacter::OnEndReload() /** Called when the reload animation ends f
 	}
 }
 
-void APlayerCharacter::OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo)
+void ASCharacterBase::OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo)
 {
 	// Reload if the current weapon clip is empty
 	if (bAutoReloadIfClipIsEmpty && NewCurrentClipAmmo <= 0)
@@ -515,7 +515,7 @@ void APlayerCharacter::OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurren
 	}
 
 	// Update the ammo counter in the HUD
-	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
+	ASCharacterBaseController* PC = Cast<ASCharacterBaseController>(GetController());
 	if (PC)
 	{
 		PC->UpdateHUDAmmoCounter(NewCurrentAmmo, NewCurrentClipAmmo);
@@ -523,7 +523,7 @@ void APlayerCharacter::OnWeaponAmmoChanged(int32 NewCurrentAmmo, int32 NewCurren
 	
 }
 
-void APlayerCharacter::OnShotFired()
+void ASCharacterBase::OnShotFired()
 {
 	ensure(CurrentWeapon);
 
@@ -550,14 +550,14 @@ void APlayerCharacter::OnShotFired()
 
 
 	// Cam shake
-	APlayerCharacterController* PC = Cast<APlayerCharacterController>(GetController());
+	ASCharacterBaseController* PC = Cast<ASCharacterBaseController>(GetController());
 	if (PC)
 	{
 		if (PistolFireCamShake) PC->ClientPlayCameraShake(PistolFireCamShake);
 	}
 }
 
-void APlayerCharacter::UpdateRotationRate()
+void ASCharacterBase::UpdateRotationRate()
 {
 	// Limit rotation while falling/jumping
 	if (GetCharacterMovement())
@@ -573,7 +573,7 @@ void APlayerCharacter::UpdateRotationRate()
 	}
 }
 
-void APlayerCharacter::UpdateMovementAxisInput()
+void ASCharacterBase::UpdateMovementAxisInput()
 {
 	// If both axis values are zero
 	if (FMath::IsNearlyZero(MoveForwardAxisVal) && FMath::IsNearlyZero(MoveRightAxisVal)) return;
@@ -603,7 +603,7 @@ void APlayerCharacter::UpdateMovementAxisInput()
 	default:
 		WalkMultiplier = 0;
 		SprintMultiplier = 0;
-		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UpdateMovementAxisInput: Reached default case"));
+		UE_LOG(LogTemp, Warning, TEXT("ASCharacterBase::UpdateMovementAxisInput: Reached default case"));
 		break;
 
 	}
@@ -630,7 +630,7 @@ void APlayerCharacter::UpdateMovementAxisInput()
 
 
 // Called every frame
-void APlayerCharacter::Tick(float DeltaTime)
+void ASCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -639,44 +639,44 @@ void APlayerCharacter::Tick(float DeltaTime)
 }
 
 // Called to bind functionality to input
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ASCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("LookUp", this, &APlayerCharacter::MousePitchInput);
-	PlayerInputComponent->BindAxis("LookRight", this, &APlayerCharacter::MouseYawInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &ASCharacterBase::MousePitchInput);
+	PlayerInputComponent->BindAxis("LookRight", this, &ASCharacterBase::MouseYawInput);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &ASCharacterBase::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ASCharacterBase::MoveRight);
 
-	PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &APlayerCharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ASCharacterBase::Jump);
 
-	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartSprint);
-	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &APlayerCharacter::StopSprint);
+	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &ASCharacterBase::StartSprint);
+	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &ASCharacterBase::StopSprint);
 
-	PlayerInputComponent->BindAction("AimDownSights", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartAimDownSights);
-	PlayerInputComponent->BindAction("AimDownSights", EInputEvent::IE_Released, this, &APlayerCharacter::StopAimDownSights);
+	PlayerInputComponent->BindAction("AimDownSights", EInputEvent::IE_Pressed, this, &ASCharacterBase::StartAimDownSights);
+	PlayerInputComponent->BindAction("AimDownSights", EInputEvent::IE_Released, this, &ASCharacterBase::StopAimDownSights);
 
-	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartFire);
-	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &APlayerCharacter::StopFire);
+	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &ASCharacterBase::StartFire);
+	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &ASCharacterBase::StopFire);
 
-	PlayerInputComponent->BindAction("HoldCrouch", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartCrouch);
-	PlayerInputComponent->BindAction("HoldCrouch", EInputEvent::IE_Released, this, &APlayerCharacter::StopCrouch);
+	PlayerInputComponent->BindAction("HoldCrouch", EInputEvent::IE_Pressed, this, &ASCharacterBase::StartCrouch);
+	PlayerInputComponent->BindAction("HoldCrouch", EInputEvent::IE_Released, this, &ASCharacterBase::StopCrouch);
 
-	PlayerInputComponent->BindAction("ToggleCrouch", EInputEvent::IE_Pressed, this, &APlayerCharacter::ToggleCrouch);
+	PlayerInputComponent->BindAction("ToggleCrouch", EInputEvent::IE_Pressed, this, &ASCharacterBase::ToggleCrouch);
 
-	PlayerInputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &APlayerCharacter::TryReload);
+	PlayerInputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &ASCharacterBase::TryReload);
 
-	PlayerInputComponent->BindAction("SelectWeapon1", EInputEvent::IE_Pressed, this, &APlayerCharacter::SelectWeaponOne);
-	PlayerInputComponent->BindAction("SelectWeapon2", EInputEvent::IE_Pressed, this, &APlayerCharacter::SelectWeaponTwo);
+	PlayerInputComponent->BindAction("SelectWeapon1", EInputEvent::IE_Pressed, this, &ASCharacterBase::SelectWeaponOne);
+	PlayerInputComponent->BindAction("SelectWeapon2", EInputEvent::IE_Pressed, this, &ASCharacterBase::SelectWeaponTwo);
 
-	PlayerInputComponent->BindAction("NextWeapon", EInputEvent::IE_Pressed, this, &APlayerCharacter::SelectNextWeapon);
-	PlayerInputComponent->BindAction("PreviousWeapon", EInputEvent::IE_Pressed, this, &APlayerCharacter::SelectPreviousWeapon);
+	PlayerInputComponent->BindAction("NextWeapon", EInputEvent::IE_Pressed, this, &ASCharacterBase::SelectNextWeapon);
+	PlayerInputComponent->BindAction("PreviousWeapon", EInputEvent::IE_Pressed, this, &ASCharacterBase::SelectPreviousWeapon);
 
-	PlayerInputComponent->BindAction("Punch", EInputEvent::IE_Pressed, this, &APlayerCharacter::StartPunch);
+	PlayerInputComponent->BindAction("Punch", EInputEvent::IE_Pressed, this, &ASCharacterBase::StartPunch);
 }
 
-FVector APlayerCharacter::GetPawnViewLocation() const
+FVector ASCharacterBase::GetPawnViewLocation() const
 {
 	if (Camera)
 	{
@@ -686,7 +686,7 @@ FVector APlayerCharacter::GetPawnViewLocation() const
 	return Super::GetPawnViewLocation();
 }
 
-void APlayerCharacter::ChangeCurrentWeaponToSelectedWeapon(bool bSetPlayerStatus)
+void ASCharacterBase::ChangeCurrentWeaponToSelectedWeapon(bool bSetPlayerStatus)
 {
 	DisableCurrentWeapon();
 
@@ -711,7 +711,7 @@ void APlayerCharacter::ChangeCurrentWeaponToSelectedWeapon(bool bSetPlayerStatus
 	}
 }
 
-void APlayerCharacter::DisableCurrentWeapon()
+void ASCharacterBase::DisableCurrentWeapon()
 {
 	if (CurrentWeapon)
 	{
@@ -722,7 +722,7 @@ void APlayerCharacter::DisableCurrentWeapon()
 	CurrentWeapon = nullptr;
 }
 
-void APlayerCharacter::EnablePistol()
+void ASCharacterBase::EnablePistol()
 {
 	if (Pistol)
 	{
@@ -736,10 +736,10 @@ void APlayerCharacter::EnablePistol()
 		{
 			Pistol->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, PistolAttachSocketName);
 			Pistol->SetOwner(this);
-			Pistol->OnWeaponAmmoChanged.AddDynamic(this, &APlayerCharacter::OnWeaponAmmoChanged);
+			Pistol->OnWeaponAmmoChanged.AddDynamic(this, &ASCharacterBase::OnWeaponAmmoChanged);
 			OnWeaponAmmoChanged(Pistol->GetCurrentAmmoCount(), Pistol->GetCurrentClipAmmoCount()); // Calling it now to update the ammo hud counter
 
-			Pistol->OnShotFired.AddDynamic(this, &APlayerCharacter::OnShotFired);
+			Pistol->OnShotFired.AddDynamic(this, &ASCharacterBase::OnShotFired);
 		}
 		else
 		{
@@ -750,7 +750,7 @@ void APlayerCharacter::EnablePistol()
 	}
 }
 
-void APlayerCharacter::EnableRifle()
+void ASCharacterBase::EnableRifle()
 {
 	if (Rifle)
 	{
@@ -764,10 +764,10 @@ void APlayerCharacter::EnableRifle()
 		{
 			Rifle->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, RifleAttachSocketName);
 			Rifle->SetOwner(this);
-			Rifle->OnWeaponAmmoChanged.AddDynamic(this, &APlayerCharacter::OnWeaponAmmoChanged);
+			Rifle->OnWeaponAmmoChanged.AddDynamic(this, &ASCharacterBase::OnWeaponAmmoChanged);
 			OnWeaponAmmoChanged(Rifle->GetCurrentAmmoCount(), Rifle->GetCurrentClipAmmoCount()); // Calling it now to update the ammo hud counter
 
-			Rifle->OnShotFired.AddDynamic(this, &APlayerCharacter::OnShotFired);
+			Rifle->OnShotFired.AddDynamic(this, &ASCharacterBase::OnShotFired);
 		}
 		else
 		{

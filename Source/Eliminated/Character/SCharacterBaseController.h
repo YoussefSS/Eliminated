@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "PlayerCharacterController.generated.h"
+#include "SCharacterBaseController.generated.h"
 
 /**
  * 
@@ -12,7 +12,7 @@
 
 class UPlayerHUD;
 UCLASS()
-class ELIMINATED_API APlayerCharacterController : public APlayerController
+class ELIMINATED_API ASCharacterBaseController : public APlayerController
 {
 	GENERATED_BODY()
 	

@@ -5,12 +5,14 @@
 #include "Eliminated\AI\CustomTargetPoint.h"
 #include "GameFramework\CharacterMovementComponent.h"
 #include "GameFramework\SpringArmComponent.h"
+#include "Camera\CameraComponent.h"
 #include "Perception\AIPerceptionComponent.h"
 #include "Perception\AISenseConfig_Sight.h"
 #include "Perception\AISenseConfig_Hearing.h"
 #include "Perception\AISenseConfig_Damage.h"
 #include "BehaviorTree\BehaviorTreeComponent.h"
 #include "BehaviorTree\BlackboardComponent.h"
+#include "Blueprint\AIBlueprintHelperLibrary.h"
 
 AAICharacter::AAICharacter()
 {
@@ -20,7 +22,7 @@ AAICharacter::AAICharacter()
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-	SightConfig->PeripheralVisionAngleDegrees = 45.f;
+	SightConfig->PeripheralVisionAngleDegrees = 60.f;
 
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
 	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
@@ -83,6 +85,23 @@ ACustomTargetPoint* AAICharacter::GetNextTargetPoint(FVector& OutLocation, float
 	return PatrolPoints[CurrentTargetPointIndex];
 }
 
+void AAICharacter::StartAimDownSights()
+{
+	Super::StartAimDownSights();
+
+	bUseControllerRotationYaw = false;
+	
+	CameraBoom->bUsePawnControlRotation = false;
+	Camera->bUsePawnControlRotation = true;
+	
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		//GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		GetCharacterMovement()->RotationRate = FRotator(0, 100, 0);
+	}
+}
+
 void AAICharacter::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAIStimulus Stimulus)
 {
 
@@ -90,5 +109,42 @@ void AAICharacter::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAISt
 
 void AAICharacter::OnPerceptionUpdated_Implementation(const TArray<AActor*>& UpdatedActors)
 {
+	for (int i = 0; i < UpdatedActors.Num(); i++)
+	{
+		AActor* UpdatedActor = UpdatedActors[i];
+		FActorPerceptionBlueprintInfo PerceptionInfo;
+		AIPerceptionComp->GetActorsPerception(UpdatedActor, PerceptionInfo);
 
+		AActor* TargetActor = PerceptionInfo.Target;
+		TArray<FAIStimulus> LastSensedStimuli = PerceptionInfo.LastSensedStimuli;
+		bool bIsHostile = PerceptionInfo.bIsHostile;
+
+		for (int StimIndex = 0; StimIndex < LastSensedStimuli.Num(); StimIndex++)
+		{
+			if (StimIndex == 0)
+			{
+				// Sight sense
+				ASCharacterBase* PlayerChar = Cast<ASCharacterBase>(TargetActor);
+				if (PlayerChar)
+				{
+					UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+					BB->SetValueAsBool(BBKey_IsAggroed, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
+					BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
+				}
+
+			}
+			else if (StimIndex == 1)
+			{
+				// Hearing sense
+
+
+			}
+			else if (StimIndex == 2)
+			{
+				// Damage sense
+
+
+			}
+		}
+	}
 }

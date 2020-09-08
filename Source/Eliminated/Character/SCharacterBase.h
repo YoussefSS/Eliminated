@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "PlayerCharacter.generated.h"
+#include "SCharacterBase.generated.h"
 
 UENUM(BlueprintType)
 enum class EPlayerStatus : uint8
@@ -17,18 +17,19 @@ enum class EPlayerStatus : uint8
 };
 
 
+
 class AWeapon;
 class UDamageType;
 class USoundCue;
 
 UCLASS()
-class ELIMINATED_API APlayerCharacter : public ACharacter
+class ELIMINATED_API ASCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
-	APlayerCharacter();
+	ASCharacterBase();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	class USpringArmComponent* CameraBoom;
@@ -73,8 +74,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float CamHeightCrouched;
 
-	void StartAimDownSights();
-	void StopAimDownSights();
+	UFUNCTION(BlueprintCallable, Category = "Camera")
+	virtual void StartAimDownSights();
+	UFUNCTION(BlueprintCallable, Category = "Camera")
+	virtual void StopAimDownSights();
 	
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Camera")
@@ -284,6 +287,6 @@ protected:
 	FVector LastShotDirection;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Punching")
-	APlayerCharacter* AIInCloseProximity;
+	ASCharacterBase* AIInCloseProximity;
 
 };

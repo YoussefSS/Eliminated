@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 
-#include "Eliminated\Character\PlayerCharacter.h" // TODO: Low Pri: remove this include
+#include "Eliminated\Character\SCharacterBase.h" // TODO: Low Pri: remove this include
 
 #include "PlayerAnimInstance.generated.h"
 
@@ -28,7 +28,7 @@ public:
 	void UpdateAnimationProperties();
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
-    class APlayerCharacter* PlayerCharacter;
+    class ASCharacterBase* SCharacterBase;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
     float MovementSpeedTotal;

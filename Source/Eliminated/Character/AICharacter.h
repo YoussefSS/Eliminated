@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Eliminated/Character/PlayerCharacter.h"
+#include "Eliminated/Character/SCharacterBase.h"
 
 #include "Perception\AIPerceptionTypes.h"
 
@@ -15,7 +15,7 @@
 class ACustomTargetPoint;
 class UAIPerceptionComponent;
 UCLASS()
-class ELIMINATED_API AAICharacter : public APlayerCharacter
+class ELIMINATED_API AAICharacter : public ASCharacterBase
 {
 	GENERATED_BODY()
 
@@ -60,11 +60,27 @@ public:
 
 protected:
 
+	virtual void StartAimDownSights();
+
 	UFUNCTION(BlueprintNativeEvent, Category = "AI| Perception")
 	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "AI| Perception")
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "AI")
+	void LookAtRotationOverTime(FRotator RotToLookAt);
 
+	// State
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
+	FRotator OriginalRotation;
+
+protected:
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_IsAggroed = "IsAggroed";
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_TargetActor = "TargetActor";
 };

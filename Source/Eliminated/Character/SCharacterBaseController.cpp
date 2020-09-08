@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PlayerCharacterController.h"
+#include "SCharacterBaseController.h"
 #include "Blueprint\UserWidget.h"
 #include "Eliminated\UI\PlayerHUD.h"
 
-void APlayerCharacterController::BeginPlay()
+void ASCharacterBaseController::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -21,7 +21,7 @@ void APlayerCharacterController::BeginPlay()
 	}
 }
 
-void APlayerCharacterController::ShowCrossHair()
+void ASCharacterBaseController::ShowCrossHair()
 {
 	if (HUDWidget)
 	{
@@ -29,7 +29,7 @@ void APlayerCharacterController::ShowCrossHair()
 	}
 }
 
-void APlayerCharacterController::HideCrossHair()
+void ASCharacterBaseController::HideCrossHair()
 {
 	if (HUDWidget)
 	{
@@ -37,7 +37,7 @@ void APlayerCharacterController::HideCrossHair()
 	}
 }
 
-void APlayerCharacterController::UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo)
+void ASCharacterBaseController::UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo)
 {
 	if (HUDWidget)
 	{
