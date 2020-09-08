@@ -42,6 +42,25 @@ protected:
 
 public:
 
+
+
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	ACustomTargetPoint* GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime);
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void SetIsPatrolGuardBBValue();
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void GetNextPatrolPointAndSetBBValues();
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void SetOriginalLocationAndRotationBBValues();
+protected:
+
+	////////////////////////////////////////////////////////////////////////////////
+	// Patrolling
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
 	float MovementSpeedPatrolling = 180;
 
@@ -52,11 +71,32 @@ public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "AI")
 	TArray<ACustomTargetPoint*> PatrolPoints;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
-	int32 CurrentTargetPointIndex = -1;
 
-	UFUNCTION(BlueprintCallable, Category = "AI")
-	ACustomTargetPoint* GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime);
+	////////////////////////////////////////////////////////////////////////////////
+	// Blackboard Keys
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_IsPatrolGuard = "IsPatrolGuard";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_TargetDestination = "TargetDestination";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_TimeToWaitAtPatrolPoint = "TimeToWaitAtPatrolPoint";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_OriginalLocation = "OriginalLocation";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_OriginalRotation = "OriginalRotation";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_IsAggroed = "IsAggroed";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_TargetActor = "TargetActor";
+
+	////////////////////////////////////////////////////////////////////////////////
 
 protected:
 
@@ -71,16 +111,16 @@ protected:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "AI")
 	void LookAtRotationOverTime(FRotator RotToLookAt);
 
+
+
+protected:
+
+	////////////////////////////////////////////////////////////////////////////////
 	// State
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
 	FRotator OriginalRotation;
 
-protected:
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
-	FName BBKey_IsAggroed = "IsAggroed";
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
-	FName BBKey_TargetActor = "TargetActor";
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
+	int32 CurrentTargetPointIndex = -1;
 };

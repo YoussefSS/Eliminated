@@ -13,6 +13,7 @@
 #include "BehaviorTree\BehaviorTreeComponent.h"
 #include "BehaviorTree\BlackboardComponent.h"
 #include "Blueprint\AIBlueprintHelperLibrary.h"
+#include "Eliminated\Character\SPlayerCharacter.h"
 
 AAICharacter::AAICharacter()
 {
@@ -85,6 +86,33 @@ ACustomTargetPoint* AAICharacter::GetNextTargetPoint(FVector& OutLocation, float
 	return PatrolPoints[CurrentTargetPointIndex];
 }
 
+void AAICharacter::SetIsPatrolGuardBBValue()
+{
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsBool(BBKey_IsPatrolGuard, bIsPatrol);
+}
+
+void AAICharacter::GetNextPatrolPointAndSetBBValues()
+{
+	if (bIsPatrol)
+	{
+		FVector OutLocation;
+		float OutWaitTime;
+		GetNextTargetPoint(OutLocation, OutWaitTime);
+
+		UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+		BB->SetValueAsVector(BBKey_TargetDestination, OutLocation);
+		BB->SetValueAsFloat(BBKey_TimeToWaitAtPatrolPoint, OutWaitTime);
+	}
+}
+
+void AAICharacter::SetOriginalLocationAndRotationBBValues()
+{
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsVector(BBKey_OriginalLocation, GetActorLocation());
+	BB->SetValueAsRotator(BBKey_OriginalRotation, GetActorRotation());
+}
+
 void AAICharacter::StartAimDownSights()
 {
 	Super::StartAimDownSights();
@@ -124,12 +152,25 @@ void AAICharacter::OnPerceptionUpdated_Implementation(const TArray<AActor*>& Upd
 			if (StimIndex == 0)
 			{
 				// Sight sense
-				ASCharacterBase* PlayerChar = Cast<ASCharacterBase>(TargetActor);
+				ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(TargetActor);
 				if (PlayerChar)
 				{
-					UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-					BB->SetValueAsBool(BBKey_IsAggroed, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
-					BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
+					if (LastSensedStimuli[StimIndex].WasSuccessfullySensed()) // Just started sensing
+					{
+						UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+						BB->SetValueAsBool(BBKey_IsAggroed, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
+						BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
+					}
+					else // Just stopped sensing
+					{
+						UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+						BB->SetValueAsBool(BBKey_IsAggroed, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
+						BB->SetValueAsObject(BBKey_TargetActor, nullptr);
+
+						UE_LOG(LogTemp, Warning, TEXT("Not Sensed"));
+						//LastSensedStimuli[StimIndex].
+					}
+					
 				}
 
 			}
