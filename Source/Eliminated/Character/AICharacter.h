@@ -43,7 +43,8 @@ protected:
 public:
 
 
-
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void SetMovementSpeed(float NewMovementSpeed);
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	ACustomTargetPoint* GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime);
@@ -90,11 +91,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
 	FName BBKey_OriginalRotation = "OriginalRotation";
 
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
 	FName BBKey_IsAggroed = "IsAggroed";
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
 	FName BBKey_TargetActor = "TargetActor";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BlackBoardValues")
+	FName BBKey_IsInvestigating = "IsInvestigating";
 
 	////////////////////////////////////////////////////////////////////////////////
 

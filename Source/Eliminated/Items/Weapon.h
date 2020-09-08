@@ -65,6 +65,12 @@ public:
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon| Sound")
+	float WeaponSoundLoudness = 0;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon| Sound")
+	float WeaponSoundMaxRange = 1;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon| Visual Effects")
 	FVector DecalSize = FVector(7,7,7);
 

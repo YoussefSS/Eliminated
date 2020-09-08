@@ -63,6 +63,14 @@ void AAICharacter::BeginPlay()
 }
 
 
+void AAICharacter::SetMovementSpeed(float NewMovementSpeed)
+{
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = NewMovementSpeed;
+	}
+}
+
 ACustomTargetPoint* AAICharacter::GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime)
 {
 	CurrentTargetPointIndex++;
@@ -151,7 +159,7 @@ void AAICharacter::OnPerceptionUpdated_Implementation(const TArray<AActor*>& Upd
 		{
 			if (StimIndex == 0)
 			{
-				// Sight sense
+				// Sight sense //
 				ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(TargetActor);
 				if (PlayerChar)
 				{
@@ -168,7 +176,6 @@ void AAICharacter::OnPerceptionUpdated_Implementation(const TArray<AActor*>& Upd
 						BB->SetValueAsObject(BBKey_TargetActor, nullptr);
 
 						UE_LOG(LogTemp, Warning, TEXT("Not Sensed"));
-						//LastSensedStimuli[StimIndex].
 					}
 					
 				}
@@ -176,13 +183,18 @@ void AAICharacter::OnPerceptionUpdated_Implementation(const TArray<AActor*>& Upd
 			}
 			else if (StimIndex == 1)
 			{
-				// Hearing sense
-
+				// Hearing sense //
+				if (LastSensedStimuli[StimIndex].WasSuccessfullySensed()) // Just started sensing
+				{
+					UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+					BB->SetValueAsBool(BBKey_IsInvestigating, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
+					BB->SetValueAsVector(BBKey_TargetDestination, LastSensedStimuli[StimIndex].StimulusLocation);
+				}
 
 			}
 			else if (StimIndex == 2)
 			{
-				// Damage sense
+				// Damage sense //
 
 
 			}

@@ -10,6 +10,8 @@
 #include "Components\DecalComponent.h"
 #include "PhysicalMaterials\PhysicalMaterial.h"
 #include "Eliminated/Eliminated.h"
+#include "Perception\AISense_Hearing.h"
+#include "Eliminated\Character\SPlayerCharacter.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -96,6 +98,11 @@ void AWeapon::Fire()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 	}
+	if (GetOwner()->IsA(ASPlayerCharacter::StaticClass()))
+	{
+		UAISense_Hearing::ReportNoiseEvent(this, GetActorLocation(), WeaponSoundLoudness, GetOwner(), WeaponSoundMaxRange, NAME_None);
+	}
+	
 
 	// Play Muzzle particle effect
 	if (MuzzleFlashFX)
