@@ -14,4 +14,9 @@ class ELIMINATED_API ASPlayerCharacter : public ASCharacterBase
 {
 	GENERATED_BODY()
 	
+
+protected:
+
+	virtual void Die() override;
+
 };

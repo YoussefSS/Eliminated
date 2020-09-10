@@ -85,8 +85,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Camera")
 	void StopAimDownSights_Event();
 
-	void StartFire();
-	void StopFire();
+
 
 	/** Try to reload when pressing the reload button */
 	void TryReload();
@@ -106,6 +105,12 @@ protected:
 	void UpdateRotationRate();
 	void UpdateMovementAxisInput();
 
+public:
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void StartFire();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void StopFire();
 
 public:	
 	// Called every frame
@@ -159,6 +164,11 @@ protected:
 
 	UFUNCTION()
 	void HandleTakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
+
+	virtual void Die();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDeath();
 
 protected:
 

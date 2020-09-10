@@ -449,28 +449,7 @@ void ASCharacterBase::OnHealthChanged(UHealthComponent* HealthComp, float Curren
 
 	if (CurrentHealth <= 0)
 	{
-		bIsDead = true;
-
-		if (GetCharacterMovement())
-		{
-			GetCharacterMovement()->StopMovementImmediately();
-			GetCharacterMovement()->DisableMovement();
-		}
-
-		if (GetCapsuleComponent())
-		{
-			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		}
-
-		// Turning on ragdoll
-		if (GetMesh())
-		{
-			GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			GetMesh()->SetAllBodiesSimulatePhysics(true);
-			GetMesh()->SetSimulatePhysics(true);
-			GetMesh()->WakeAllRigidBodies();
-			GetMesh()->AddImpulseAtLocation(LastShotDirection*40000, LastShotHitLocation);
-		}
+		Die();
 	}
 }
 
@@ -478,6 +457,34 @@ void ASCharacterBase::HandleTakePointDamage(AActor* DamagedActor, float Damage, 
 {
 	LastShotHitLocation = HitLocation;
 	LastShotDirection = ShotFromDirection;
+}
+
+void ASCharacterBase::Die()
+{
+	bIsDead = true;
+
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->DisableMovement();
+	}
+
+	if (GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	// Turning on ragdoll
+	if (GetMesh())
+	{
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		GetMesh()->SetAllBodiesSimulatePhysics(true);
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->WakeAllRigidBodies();
+		GetMesh()->AddImpulseAtLocation(LastShotDirection * 40000, LastShotHitLocation);
+	}
+
+	OnDeath();
 }
 
 void ASCharacterBase::OnEndReload() /** Called when the reload animation ends from animinstance */

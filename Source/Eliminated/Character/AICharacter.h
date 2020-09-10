@@ -49,6 +49,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	ACustomTargetPoint* GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime);
 
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void StopInvestigatingSound();
+
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetIsPatrolGuardBBValue();
 
@@ -57,6 +61,27 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetOriginalLocationAndRotationBBValues();
+
+protected:
+
+	virtual void StartAimDownSights() override;
+
+	virtual void StopAimDownSights() override;
+
+	UFUNCTION(BlueprintNativeEvent, Category = "AI| Perception")
+	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "AI| Perception")
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "AI")
+	void LookAtRotationOverTime(FRotator RotToLookAt);
+
+	UFUNCTION()
+	void StopAggroing();
+
+	virtual void Die() override;
+
 protected:
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -71,6 +96,12 @@ protected:
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "AI")
 	TArray<ACustomTargetPoint*> PatrolPoints;
+
+	////////////////////////////////////////////////////////////////////////////////
+	// Other
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
+	float TimeToStopAggroing = 3.f;
 
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -103,20 +134,6 @@ protected:
 
 	////////////////////////////////////////////////////////////////////////////////
 
-protected:
-
-	virtual void StartAimDownSights();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "AI| Perception")
-	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
-
-	UFUNCTION(BlueprintNativeEvent, Category = "AI| Perception")
-	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "AI")
-	void LookAtRotationOverTime(FRotator RotToLookAt);
-
-
 
 protected:
 
@@ -128,4 +145,6 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
 	int32 CurrentTargetPointIndex = -1;
+
+	FTimerHandle StopAggroing_Timer;
 };

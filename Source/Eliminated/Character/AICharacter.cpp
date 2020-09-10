@@ -94,6 +94,12 @@ ACustomTargetPoint* AAICharacter::GetNextTargetPoint(FVector& OutLocation, float
 	return PatrolPoints[CurrentTargetPointIndex];
 }
 
+void AAICharacter::StopInvestigatingSound()
+{
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsBool(BBKey_IsInvestigating, false);
+}
+
 void AAICharacter::SetIsPatrolGuardBBValue()
 {
 	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
@@ -138,6 +144,38 @@ void AAICharacter::StartAimDownSights()
 	}
 }
 
+void AAICharacter::StopAimDownSights()
+{
+	Super::StopAimDownSights();
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1,
+			2, //Duration
+			FColor::Cyan,
+			FString::Printf(TEXT("                     Stopped aimind down sights")),
+			true,
+			FVector2D(3, 3)
+		);
+	}
+}
+
+void AAICharacter::StopAggroing()
+{
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsBool(BBKey_IsAggroed, false);
+	BB->SetValueAsObject(BBKey_TargetActor, nullptr);
+}
+
+
+
+void AAICharacter::Die()
+{
+	Super::Die();
+
+	StopFire();
+}
+
 void AAICharacter::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAIStimulus Stimulus)
 {
 
@@ -168,14 +206,12 @@ void AAICharacter::OnPerceptionUpdated_Implementation(const TArray<AActor*>& Upd
 						UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
 						BB->SetValueAsBool(BBKey_IsAggroed, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
 						BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
+
+						GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
 					}
 					else // Just stopped sensing
 					{
-						UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-						BB->SetValueAsBool(BBKey_IsAggroed, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
-						BB->SetValueAsObject(BBKey_TargetActor, nullptr);
-
-						UE_LOG(LogTemp, Warning, TEXT("Not Sensed"));
+						GetWorldTimerManager().SetTimer(StopAggroing_Timer, this, &AAICharacter::StopAggroing, TimeToStopAggroing);
 					}
 					
 				}

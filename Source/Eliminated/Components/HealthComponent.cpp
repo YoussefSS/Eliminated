@@ -41,7 +41,5 @@ void UHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, c
 	// Update health clamped
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, DefaultHealth);
 
-	UE_LOG(LogTemp, Warning, TEXT("Health Changed: %s"), *FString::SanitizeFloat(CurrentHealth));
-
 	OnHealthChanged.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser);
 }
