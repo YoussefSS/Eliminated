@@ -37,6 +37,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets | PauseMenu")
 	UUserWidget* PauseMenuWidget;
 
+	/** Reference to the UMG asset in the editor */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets | LoseMenu")
+	TSubclassOf< UUserWidget> LoseMenuWidgetAsset;
+
+	/** Variable to hold the widget after creating it */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets | LoseMenu")
+	UUserWidget* LoseMenuWidget;
+
+
 public:
 
 	void ShowCrossHair();
@@ -48,6 +57,9 @@ public:
 	void ShowPauseMenu();
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void HidePauseMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowLoseMenu();
 
 	void UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
 

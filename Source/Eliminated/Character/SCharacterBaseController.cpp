@@ -30,6 +30,16 @@ void ASCharacterBaseController::BeginPlay()
 			PauseMenuWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
+
+	if (LoseMenuWidgetAsset)
+	{
+		LoseMenuWidget = Cast<UUserWidget>(CreateWidget<UUserWidget>(this, LoseMenuWidgetAsset));
+		if (LoseMenuWidget)
+		{
+			LoseMenuWidget->AddToViewport(0);
+			LoseMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
 }
 
 void ASCharacterBaseController::ShowCrossHair()
@@ -74,10 +84,6 @@ void ASCharacterBaseController::ShowPauseMenu()
 		FInputModeUIOnly InputModeUIOnly;
 		SetInputMode(InputModeUIOnly);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("no widget"));
-	}
 }
 
 void ASCharacterBaseController::HidePauseMenu()
@@ -91,6 +97,18 @@ void ASCharacterBaseController::HidePauseMenu()
 
 		FInputModeGameOnly InputModeGameOnly;
 		SetInputMode(InputModeGameOnly);
+	}
+}
+
+void ASCharacterBaseController::ShowLoseMenu()
+{
+	if (LoseMenuWidget)
+	{
+		LoseMenuWidget->SetVisibility(ESlateVisibility::Visible);
+		bShowMouseCursor = true;
+
+		FInputModeUIOnly InputModeUIOnly;
+		SetInputMode(InputModeUIOnly);
 	}
 }
 

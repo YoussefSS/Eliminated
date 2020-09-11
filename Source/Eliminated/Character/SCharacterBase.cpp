@@ -493,6 +493,13 @@ void ASCharacterBase::Die()
 		GetMesh()->AddImpulseAtLocation(LastShotDirection * 40000, LastShotHitLocation);
 	}
 
+	// Show lose menu
+	ASCharacterBaseController* PC = Cast<ASCharacterBaseController>(GetController());
+	if (PC)
+	{
+		PC->ShowLoseMenu();
+	}
+
 	OnDeath();
 }
 
