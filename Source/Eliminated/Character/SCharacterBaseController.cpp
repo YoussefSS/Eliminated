@@ -5,6 +5,7 @@
 #include "Blueprint\UserWidget.h"
 #include "Eliminated\UI\PlayerHUD.h"
 #include "Kismet\GameplayStatics.h"
+#include "Eliminated\EliminatedGameModeBase.h"
 
 void ASCharacterBaseController::BeginPlay()
 {
@@ -18,6 +19,8 @@ void ASCharacterBaseController::BeginPlay()
 			HUDWidget->AddToViewport(0);
 			HUDWidget->SetVisibility(ESlateVisibility::Visible);
 			HUDWidget->HideCrossHair();
+
+			HUDWidget->UpdateEnemiesRemainingTextFromGM();
 		}
 	}
 
@@ -39,6 +42,22 @@ void ASCharacterBaseController::BeginPlay()
 			LoseMenuWidget->AddToViewport(0);
 			LoseMenuWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
+	}
+
+	if (VictoryMenuWidgetAsset)
+	{
+		VictoryMenuWidget = Cast<UUserWidget>(CreateWidget<UUserWidget>(this, VictoryMenuWidgetAsset));
+		if (VictoryMenuWidget)
+		{
+			VictoryMenuWidget->AddToViewport(0);
+			VictoryMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	AEliminatedGameModeBase* GM = Cast<AEliminatedGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (GM)
+	{
+		GM->OnEnemyDied.AddDynamic(this, &ASCharacterBaseController::OnEnemyDied);
 	}
 }
 
@@ -112,6 +131,20 @@ void ASCharacterBaseController::ShowLoseMenu()
 	}
 }
 
+void ASCharacterBaseController::ShowVictoryMenu()
+{
+	if (VictoryMenuWidget)
+	{
+		VictoryMenuWidget->SetVisibility(ESlateVisibility::Visible);
+		bShowMouseCursor = true;
+
+		FInputModeUIOnly InputModeUIOnly;
+		SetInputMode(InputModeUIOnly);
+
+		UGameplayStatics::SetGlobalTimeDilation(this, 0);
+	}
+}
+
 void ASCharacterBaseController::UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo)
 {
 	if (HUDWidget)
@@ -119,4 +152,18 @@ void ASCharacterBaseController::UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32
 		HUDWidget->UpdateAmmoCounterText(NewCurrentAmmo, NewCurrentClipAmmo);
 	}
 	
+}
+
+void ASCharacterBaseController::OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies)
+{
+	// No more enemies remaining
+	if (RemainingEnemies <= 0)
+	{
+		ShowVictoryMenu();
+	}
+
+	if (HUDWidget)
+	{
+		HUDWidget->UpdateEnemiesRemainingTextFromGM();
+	}
 }

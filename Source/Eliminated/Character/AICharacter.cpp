@@ -14,6 +14,8 @@
 #include "BehaviorTree\BlackboardComponent.h"
 #include "Blueprint\AIBlueprintHelperLibrary.h"
 #include "Eliminated\Character\SPlayerCharacter.h"
+#include "Kismet\GameplayStatics.h"
+#include "Eliminated\EliminatedGameModeBase.h"
 
 AAICharacter::AAICharacter()
 {
@@ -59,6 +61,13 @@ void AAICharacter::BeginPlay()
 	{
 		AIPerceptionComp->OnPerceptionUpdated.AddDynamic(this, &AAICharacter::OnPerceptionUpdated);
 		AIPerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &AAICharacter::OnTargetPerceptionUpdated);
+	}
+
+	// Let the game mode know you were spawned
+	AEliminatedGameModeBase* GM = Cast<AEliminatedGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (GM)
+	{
+		GM->AddEnemyNPC(this);
 	}
 }
 
@@ -174,6 +183,13 @@ void AAICharacter::Die()
 	Super::Die();
 
 	StopFire();
+
+	// Let the game mode know you died
+	AEliminatedGameModeBase* GM = Cast<AEliminatedGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (GM)
+	{
+		GM->EnemyNPCDied(this);
+	}
 }
 
 void AAICharacter::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAIStimulus Stimulus)

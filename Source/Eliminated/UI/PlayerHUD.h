@@ -24,9 +24,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	class UTextBlock* AmmoCounterText;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UTextBlock* EnemiesRemainingText;
+
 public:
 	void ShowCrossHair();
 	void HideCrossHair();
 
 	void UpdateAmmoCounterText(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
+
+	void UpdateEnemiesRemainingTextFromGM();
 };

@@ -45,6 +45,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets | LoseMenu")
 	UUserWidget* LoseMenuWidget;
 
+	/** Reference to the UMG asset in the editor */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets | VictoryMenu")
+	TSubclassOf< UUserWidget> VictoryMenuWidgetAsset;
+
+	/** Variable to hold the widget after creating it */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets | VictoryMenu")
+	UUserWidget* VictoryMenuWidget;
+
 
 public:
 
@@ -61,9 +69,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ShowLoseMenu();
 
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowVictoryMenu();
+
 	void UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
 
 protected:
+
+	UFUNCTION()
+	void OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies);
 
 	bool bPauseMenuVisible = false;
 };
