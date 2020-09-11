@@ -374,6 +374,15 @@ void ASCharacterBase::StartPunch()
 	}
 }
 
+void ASCharacterBase::PauseKeyPressed()
+{
+	ASCharacterBaseController* PC = Cast<ASCharacterBaseController>(GetController());
+	if (PC)
+	{
+		PC->TogglePauseMenu();
+	}
+}
+
 void ASCharacterBase::DoPunch()
 {
 	// Punch damage logic
@@ -681,6 +690,8 @@ void ASCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAction("PreviousWeapon", EInputEvent::IE_Pressed, this, &ASCharacterBase::SelectPreviousWeapon);
 
 	PlayerInputComponent->BindAction("Punch", EInputEvent::IE_Pressed, this, &ASCharacterBase::StartPunch);
+
+	PlayerInputComponent->BindAction("Pause", EInputEvent::IE_Pressed, this, &ASCharacterBase::PauseKeyPressed);
 }
 
 FVector ASCharacterBase::GetPawnViewLocation() const
