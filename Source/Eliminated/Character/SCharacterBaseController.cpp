@@ -140,8 +140,6 @@ void ASCharacterBaseController::ShowVictoryMenu()
 
 		FInputModeUIOnly InputModeUIOnly;
 		SetInputMode(InputModeUIOnly);
-
-		UGameplayStatics::SetGlobalTimeDilation(this, 0);
 	}
 }
 
@@ -152,6 +150,14 @@ void ASCharacterBaseController::UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32
 		HUDWidget->UpdateAmmoCounterText(NewCurrentAmmo, NewCurrentClipAmmo);
 	}
 	
+}
+
+void ASCharacterBaseController::UpdateHealthBar(float MaxHealth, float CurrentHealth)
+{
+	if (HUDWidget)
+	{
+		HUDWidget->UpdateHealthBar(MaxHealth, CurrentHealth);
+	}
 }
 
 void ASCharacterBaseController::OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies)

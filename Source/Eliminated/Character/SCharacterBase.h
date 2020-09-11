@@ -171,6 +171,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnDeath();
 
+	UFUNCTION()
+	virtual void OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies);
+
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Punching")

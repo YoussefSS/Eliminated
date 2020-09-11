@@ -74,6 +74,8 @@ public:
 
 	void UpdateHUDAmmoCounter(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
 
+	void UpdateHealthBar(float MaxHealth, float CurrentHealth);
+
 protected:
 
 	UFUNCTION()

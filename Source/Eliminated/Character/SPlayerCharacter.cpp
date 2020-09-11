@@ -7,6 +7,8 @@
 #include "Eliminated\Character\AICharacter.h"
 #include "EngineUtils.h"
 #include "AIModule\Classes\BrainComponent.h"
+#include "GameFramework\CharacterMovementComponent.h"
+
 
 void ASPlayerCharacter::Die()
 {
@@ -22,4 +24,21 @@ void ASPlayerCharacter::Die()
 	}
 
 
+}
+
+void ASPlayerCharacter::OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies)
+{
+	Super::OnEnemyDied(DeadEnemy, RemainingEnemies);
+
+	if (RemainingEnemies <= 0)
+	{
+		//StopAimDownSights();
+		StopFire();
+
+		if (GetCharacterMovement())
+		{
+			GetCharacterMovement()->StopMovementImmediately();
+			GetCharacterMovement()->DisableMovement();
+		}
+	}
 }

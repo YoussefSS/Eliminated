@@ -7,6 +7,7 @@
 #include "Eliminated\Character\SCharacterBase.h"
 #include "Kismet\GameplayStatics.h"
 #include "Eliminated\EliminatedGameModeBase.h"
+#include "Components\ProgressBar.h"
 
 bool UPlayerHUD::Initialize()
 {
@@ -15,6 +16,7 @@ bool UPlayerHUD::Initialize()
 	if (!CrossHairImage) return false;
 	if (!AmmoCounterText) return false;
 	if (!EnemiesRemainingText) return false;
+	if (!HealthBar) return false;
 
 	return true;
 }
@@ -51,7 +53,6 @@ void UPlayerHUD::UpdateAmmoCounterText(int32 NewCurrentAmmo, int32 NewCurrentCli
 
 void UPlayerHUD::UpdateEnemiesRemainingTextFromGM()
 {
-	// Let the game mode know you were spawned
 	AEliminatedGameModeBase* GM = Cast<AEliminatedGameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (GM)
 	{
@@ -63,5 +64,14 @@ void UPlayerHUD::UpdateEnemiesRemainingTextFromGM()
 		{
 			EnemiesRemainingText->SetText(FText::FromString(NewEnemyRemainingText));
 		}
+	}
+}
+
+void UPlayerHUD::UpdateHealthBar(float MaxHealth, float CurrentHealth)
+{
+	if (HealthBar)
+	{
+		float HealthPercent = (CurrentHealth / MaxHealth);
+		HealthBar->SetPercent(HealthPercent);
 	}
 }

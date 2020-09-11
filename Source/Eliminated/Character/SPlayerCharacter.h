@@ -19,4 +19,5 @@ protected:
 
 	virtual void Die() override;
 
+	virtual void OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies) override;
 };

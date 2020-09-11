@@ -17,6 +17,9 @@ public:
 	// Sets default values for this component's properties
 	UHealthComponent();
 
+	int32 GetMaxHealth() { return DefaultHealth; }
+
+	int32 GetCurrentHealth() { return CurrentHealth; }
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

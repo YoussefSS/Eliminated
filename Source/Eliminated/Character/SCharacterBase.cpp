@@ -16,6 +16,7 @@
 #include "Kismet\GameplayStatics.h"
 #include "Kismet\KismetMathLibrary.h"
 #include "Sound\SoundCue.h"
+#include "Eliminated\EliminatedGameModeBase.h"
 
 // Sets default values
 ASCharacterBase::ASCharacterBase()
@@ -89,6 +90,12 @@ void ASCharacterBase::BeginPlay()
 	if (HealthComponent)
 	{
 		HealthComponent->OnHealthChanged.AddDynamic(this, &ASCharacterBase::OnHealthChanged);
+	}
+
+	AEliminatedGameModeBase* GM = Cast<AEliminatedGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (GM)
+	{
+		GM->OnEnemyDied.AddDynamic(this, &ASCharacterBase::OnEnemyDied);
 	}
 
 	OnTakePointDamage.AddDynamic(this, &ASCharacterBase::HandleTakePointDamage);
@@ -456,6 +463,17 @@ void ASCharacterBase::OnHealthChanged(UHealthComponent* HealthComp, float Curren
 {
 	if (bIsDead) return;
 
+	//UE_LOG(LogTemp, Warning, TEXT("CurrentHealth: %f, Random %f"), CurrentHealth, 5.f);
+
+	ASCharacterBaseController* PC = Cast<ASCharacterBaseController>(GetController());
+	if (PC)
+	{
+		if (HealthComp)
+		{
+			PC->UpdateHealthBar(HealthComp->GetMaxHealth(), CurrentHealth);
+		}
+	}
+
 	if (CurrentHealth <= 0)
 	{
 		Die();
@@ -471,6 +489,9 @@ void ASCharacterBase::HandleTakePointDamage(AActor* DamagedActor, float Damage, 
 void ASCharacterBase::Die()
 {
 	bIsDead = true;
+
+	StopAimDownSights();
+	StopFire();
 
 	if (GetCharacterMovement())
 	{
@@ -493,6 +514,7 @@ void ASCharacterBase::Die()
 		GetMesh()->AddImpulseAtLocation(LastShotDirection * 40000, LastShotHitLocation);
 	}
 
+	
 	// Show lose menu
 	ASCharacterBaseController* PC = Cast<ASCharacterBaseController>(GetController());
 	if (PC)
@@ -501,6 +523,11 @@ void ASCharacterBase::Die()
 	}
 
 	OnDeath();
+}
+
+void ASCharacterBase::OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies)
+{
+	
 }
 
 void ASCharacterBase::OnEndReload() /** Called when the reload animation ends from animinstance */

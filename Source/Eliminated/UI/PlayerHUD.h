@@ -27,6 +27,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	class UTextBlock* EnemiesRemainingText;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UProgressBar* HealthBar;
 public:
 	void ShowCrossHair();
 	void HideCrossHair();
@@ -34,4 +36,6 @@ public:
 	void UpdateAmmoCounterText(int32 NewCurrentAmmo, int32 NewCurrentClipAmmo);
 
 	void UpdateEnemiesRemainingTextFromGM();
+
+	void UpdateHealthBar(float MaxHealth, float CurrentHealth);
 };
