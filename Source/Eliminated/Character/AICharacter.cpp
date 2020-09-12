@@ -201,9 +201,9 @@ void AAICharacter::OnPerceptionUpdated_Implementation(const TArray<AActor*>& Upd
 {
 	for (int i = 0; i < UpdatedActors.Num(); i++)
 	{
-		AActor* UpdatedActor = UpdatedActors[i];
+		AActor* UpdatedActor = UpdatedActors[i]; // Getting the actor to check
 		FActorPerceptionBlueprintInfo PerceptionInfo;
-		AIPerceptionComp->GetActorsPerception(UpdatedActor, PerceptionInfo);
+		AIPerceptionComp->GetActorsPerception(UpdatedActor, PerceptionInfo); // Getting details about the PerceptionInfo
 
 		AActor* TargetActor = PerceptionInfo.Target;
 		TArray<FAIStimulus> LastSensedStimuli = PerceptionInfo.LastSensedStimuli;
@@ -225,9 +225,10 @@ void AAICharacter::OnPerceptionUpdated_Implementation(const TArray<AActor*>& Upd
 
 						GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
 					}
-					else // Just stopped sensing
+					else // Just stopped sensing NOTE THAT THIS IS CALLED EVEN IF ANOTHER SENSE HAS SENSED
 					{
 						GetWorldTimerManager().SetTimer(StopAggroing_Timer, this, &AAICharacter::StopAggroing, TimeToStopAggroing);
+						UE_LOG(LogTemp, Warning, TEXT("NOT SENESED"));
 					}
 					
 				}
