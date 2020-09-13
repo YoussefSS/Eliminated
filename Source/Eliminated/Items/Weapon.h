@@ -108,8 +108,16 @@ protected:
 	int32 AmmoPerClip = 10;
 
 	/** Amount of recoil to add as controller pitch rotation */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon| WeaponSpread")
 	float RecoilAmount = 0.1;
+
+	/** Is this weapon able to have additive weapon spread (in degrees) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon| WeaponSpread")
+	bool bAdditionalBulletSpread = false;
+
+	/** Weapon spread that is additive on the RecoilAmount, in degrees. NOTE: This does not add controller rotation, so it's best for AI */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (EditCondition = "bAdditionalBulletSpread", ClampMin = 0.0), Category = "Weapon| WeaponSpread")
+	float BulletSpreadDegrees = 0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<UDamageType> DamageType;

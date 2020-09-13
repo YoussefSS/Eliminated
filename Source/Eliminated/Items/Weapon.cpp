@@ -118,9 +118,17 @@ void AWeapon::Fire()
 	{
 		FVector EyeLocation;
 		FRotator EyeRotation;
-		GetOwner()->GetActorEyesViewPoint(EyeLocation, EyeRotation); // These are out parameters
+		GetOwner()->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
 		FVector ShotDirection = EyeRotation.Vector();
+
+		// Bullet spread, does not add controller rotation
+		if(bAdditionalBulletSpread)
+		{
+			float HalfRad = FMath::DegreesToRadians(BulletSpreadDegrees);
+			ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
+		}
+
 		FVector TraceEnd = EyeLocation + (ShotDirection * 10000); // The end is the direction we are looking + a big number
 
 		FCollisionQueryParams QueryParams;
