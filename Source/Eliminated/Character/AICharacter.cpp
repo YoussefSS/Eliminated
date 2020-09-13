@@ -28,9 +28,12 @@ AAICharacter::AAICharacter()
 	SightConfig->PeripheralVisionAngleDegrees = 60.f;
 
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
+	HearingConfig->HearingRange = 3200;
 	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
 	HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	HearingConfig->bUseLoSHearing = true;
+	HearingConfig->LoSHearingRange = 3700;
 
 	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
 	
