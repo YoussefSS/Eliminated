@@ -512,6 +512,8 @@ void ASCharacterBase::Die()
 		GetMesh()->SetSimulatePhysics(true);
 		GetMesh()->WakeAllRigidBodies();
 		GetMesh()->AddImpulseAtLocation(LastShotDirection * 40000, LastShotHitLocation);
+
+		GetWorldTimerManager().SetTimer(StopRagdoll_TimerHandle, this, &ASCharacterBase::StopRagdoll, StopRagdollTime);
 	}
 
 	
@@ -528,6 +530,18 @@ void ASCharacterBase::Die()
 void ASCharacterBase::OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies)
 {
 	
+}
+
+void ASCharacterBase::StopRagdoll()
+{
+	if (GetMesh())
+	{
+		// Using these plays the idle animation
+		//GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		//GetMesh()->SetAllBodiesSimulatePhysics(false);
+		//GetMesh()->SetSimulatePhysics(false);
+		GetMesh()->PutAllRigidBodiesToSleep();
+	}
 }
 
 void ASCharacterBase::OnEndReload() /** Called when the reload animation ends from animinstance */

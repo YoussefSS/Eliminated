@@ -168,11 +168,16 @@ protected:
 
 	virtual void Die();
 
+	/** For if you want any BP only logic */
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnDeath();
 
 	UFUNCTION()
 	virtual void OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies);
+
+	FTimerHandle StopRagdoll_TimerHandle;
+	UFUNCTION()
+	void StopRagdoll();
 
 protected:
 
@@ -251,6 +256,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "700.0", UIMin = "0.0", UIMax = "700.0"), Category = "Movement")
 	float SpringArmDistance_AimDownSight = 300.0f;
 
+	/** The time after the characters death to stop the ragdoll effect for optimization */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float StopRagdollTime = 2.f;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement| No Weapon")
 	float WalkMultiplier_NoWeapon = 0.33f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement| No Weapon")
@@ -266,15 +275,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"), Category = "Movement| Crouch")
 	float WalkMultiplier_Crouched = 0.1f;
 
+	
 
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
-	EPlayerStatus PlayerStatus = EPlayerStatus::EMS_NoWeapon;
 
 protected:
 
 	////////////////////////////////////////////////////////
 	// STATE
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Movement")
+	EPlayerStatus PlayerStatus = EPlayerStatus::EMS_NoWeapon;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Movement")
 	bool bIsSprinting;

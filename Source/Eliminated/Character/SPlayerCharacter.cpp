@@ -2,13 +2,27 @@
 
 
 #include "SPlayerCharacter.h"
-#include "Blueprint\AIBlueprintHelperLibrary.h"
-#include "AIController.h"
+#include "Eliminated\Character\SAIController.h"
 #include "Eliminated\Character\AICharacter.h"
 #include "EngineUtils.h"
 #include "AIModule\Classes\BrainComponent.h"
 #include "GameFramework\CharacterMovementComponent.h"
+#include "Perception\AIPerceptionStimuliSourceComponent.h"
+#include "Perception\AISense_Damage.h"
 
+#include "Perception\AISenseConfig_Damage.h"
+#include "Perception\AIPerceptionSystem.h"
+
+ASPlayerCharacter::ASPlayerCharacter()
+{
+
+}
+
+void ASPlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+}
 
 void ASPlayerCharacter::Die()
 {
@@ -19,11 +33,12 @@ void ASPlayerCharacter::Die()
 		AAICharacter* AIChar = *AICharItr;
 		AIChar->StopFire();
 
-		AAIController* AIController = UAIBlueprintHelperLibrary::GetAIController(AIChar);
-		AIController->GetBrainComponent()->StopLogic("Player Is Dead");
+		ASAIController* AIController = Cast<ASAIController>(AIChar->GetController());
+		if (AIController)
+		{
+			AIController->GetBrainComponent()->StopLogic("Player Is Dead");
+		}
 	}
-
-
 }
 
 void ASPlayerCharacter::OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies)

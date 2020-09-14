@@ -11,6 +11,7 @@
 #include "PhysicalMaterials\PhysicalMaterial.h"
 #include "Eliminated/Eliminated.h"
 #include "Perception\AISense_Hearing.h"
+#include "Perception\AISense_Damage.h"
 #include "Eliminated\Character\SPlayerCharacter.h"
 
 // Sets default values
@@ -153,10 +154,14 @@ void AWeapon::Fire()
 				ActualDamage *= HeadshotDamageMultiplier;
 			}
 			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, GetOwner()->GetInstigatorController(), this, DamageType);
+			UAISense_Damage::ReportDamageEvent(this, HitActor, GetOwner(), ActualDamage, GetActorLocation(), Hit.ImpactPoint);
+
 			LineTraceHitPoint = Hit.ImpactPoint;
 
+				
 			
-
+			
+			// Impact particle effect
 			PlayWeaponImpactEffect(LineTraceHitPoint, SurfaceType);
 
 			// Bullet hole decal

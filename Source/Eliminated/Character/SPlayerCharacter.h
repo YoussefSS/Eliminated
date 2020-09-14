@@ -17,12 +17,17 @@ class ELIMINATED_API ASPlayerCharacter : public ASCharacterBase, public IAISight
 	GENERATED_BODY()
 	
 
+public:
+
+	ASPlayerCharacter();
+
 protected:
+
+	virtual void BeginPlay() override;
 
 	virtual void Die() override;
 
 	virtual void OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies) override;
-
 public:
 
 	/** Overriding the CanBeSeeFrom function to specify locations on the characters body that the AI can see */
