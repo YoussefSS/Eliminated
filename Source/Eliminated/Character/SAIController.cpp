@@ -59,7 +59,7 @@ void ASAIController::BeginPlay()
 
 void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Damage::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
+	/*if (UKismetMathLibrary::ClassIsChildOf(UAISense_Damage::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("============================="));
 		if (Stimulus.WasSuccessfullySensed())
@@ -70,7 +70,7 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Dmg Sensed in OnTargetPerceptionUpdated NON SUCCESSFULY"));
 		}
-	}
+	}*/
 }
 
 void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& UpdatedActors)
@@ -91,25 +91,6 @@ void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& U
 
 		for (int StimIndex = 0; StimIndex < LastSensedStimuli.Num(); StimIndex++)
 		{
-
-			if (UKismetMathLibrary::ClassIsChildOf(UAISense_Damage::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, LastSensedStimuli[StimIndex])))
-			{
-				if (LastSensedStimuli[StimIndex].WasSuccessfullySensed())
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Dmg Sensed in OnPerceptionUpdated SUCCESSFULY"));
-				}
-				else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Dmg Sensed in OnPerceptionUpdated NON SUCCESSFULY"));
-				}
-				
-
-				DrawDebugSphere(GetWorld(), LastSensedStimuli[StimIndex].ReceiverLocation, 10, 8, FColor::Red, false, 10, 0, 3);
-				DrawDebugString(GetWorld(), LastSensedStimuli[StimIndex].ReceiverLocation, "Receiver", nullptr, FColor::White, 10);
-
-				DrawDebugSphere(GetWorld(), LastSensedStimuli[StimIndex].StimulusLocation, 10, 8, FColor::Green, false, 10, 0, 3);
-				DrawDebugString(GetWorld(), LastSensedStimuli[StimIndex].StimulusLocation, "Receiver", nullptr, FColor::White, 10);
-			}
 
 			if (StimIndex == 0)
 			{
