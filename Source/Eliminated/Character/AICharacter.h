@@ -4,12 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Eliminated/Character/SCharacterBase.h"
+
+#include "Eliminated\Character\SAIController.h"
+
 #include "AICharacter.generated.h"
 
 /**
  * 
  */
 class ACustomTargetPoint;
+enum class EAIStatus : uint8;
 
 UCLASS()
 class ELIMINATED_API AAICharacter : public ASCharacterBase
@@ -22,6 +26,9 @@ public:
 protected:
 	
 	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	class UWidgetComponent* StatusWidget;
 
 public:
 
@@ -43,6 +50,9 @@ protected:
 	void LookAtRotationOverTime(FRotator RotToLookAt);
 
 	virtual void Die() override;
+
+	UFUNCTION()
+	void OnAIStatusChanged(EAIStatus NewStatus, ASAIController* AffectedController);
 
 protected:
 

@@ -2,7 +2,6 @@
 
 
 #include "AICharacter.h"
-
 #include "GameFramework\CharacterMovementComponent.h"
 #include "GameFramework\SpringArmComponent.h"
 #include "Camera\CameraComponent.h"
@@ -10,10 +9,16 @@
 #include "Kismet\GameplayStatics.h"
 #include "Eliminated\EliminatedGameModeBase.h"
 #include "Eliminated\Character\SAIController.h"
+#include "Components\WidgetComponent.h"
+#include "Eliminated\UI\AIStatus.h"
 
 
 AAICharacter::AAICharacter()
 {
+	StatusWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("StatusWidget"));
+	StatusWidget->SetWidgetSpace(EWidgetSpace::Screen); 
+	StatusWidget->SetupAttachment(GetRootComponent());
+
 	CameraBoom->TargetArmLength = 0.f;
 
 	SpringArmDistance_Regular = 0;
@@ -35,6 +40,21 @@ void AAICharacter::BeginPlay()
 	if (GM)
 	{
 		GM->AddEnemyNPC(this);
+	}
+
+	ASAIController* AIC = Cast<ASAIController>(GetController());
+	if (AIC)
+	{
+		AIC->OnAIStatusChanged.AddDynamic(this, &AAICharacter::OnAIStatusChanged);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AAICharacter::BeginPlay No ASAIController"));
+	}
+
+	if (StatusWidget)
+	{
+		StatusWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -99,5 +119,40 @@ void AAICharacter::Die()
 	if (AIController)
 	{
 		AIController->OnDeath();
+	}
+
+	if (StatusWidget)
+	{
+		StatusWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		StatusWidget->Deactivate();
+	}
+}
+
+void AAICharacter::OnAIStatusChanged(EAIStatus NewStatus, ASAIController* AffectedController)
+{
+	if (NewStatus == EAIStatus::EAS_Normal)
+	{
+		if (StatusWidget)
+		{
+			StatusWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+	else if (NewStatus == EAIStatus::EAS_Ivestigating)
+	{
+		UAIStatus* AIStatusUserWidget = Cast<UAIStatus>(StatusWidget->GetUserWidgetObject());
+		if (AIStatusUserWidget)
+		{
+			AIStatusUserWidget->SetVisibility(ESlateVisibility::Visible);
+			AIStatusUserWidget->SetStatusInvestigating();
+		}
+	}
+	else if (NewStatus == EAIStatus::EAS_Aggroed)
+	{
+		UAIStatus* AIStatusUserWidget = Cast<UAIStatus>(StatusWidget->GetUserWidgetObject());
+		if (AIStatusUserWidget)
+		{
+			AIStatusUserWidget->SetVisibility(ESlateVisibility::Visible);
+			AIStatusUserWidget->SetStatusAggroed();
+		}
 	}
 }

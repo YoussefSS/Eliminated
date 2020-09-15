@@ -49,6 +49,7 @@ void ASAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SetAIStatus(EAIStatus::EAS_Normal);
 	if (AIPerceptionComp)
 	{
 		AIPerceptionComp->OnPerceptionUpdated.AddDynamic(this, &ASAIController::OnPerceptionUpdated);
@@ -59,23 +60,82 @@ void ASAIController::BeginPlay()
 
 void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAIStimulus Stimulus)
 {
-	/*if (UKismetMathLibrary::ClassIsChildOf(UAISense_Damage::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
+	// ELSE ONLY works on sight
+	// NOTE that the else parts won't be called as the MaxAge is set to 0, which means never. 
+
+	// SIGHT
+	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Sight::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("============================="));
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Dmg Sensed in OnTargetPerceptionUpdated SUCCESSFULY"));
+			ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(Actor);
+			if (PlayerChar)
+			{
+				UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+				BB->SetValueAsBool(BBKey_IsAggroed, true);
+				BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
+
+				SetAIStatus(EAIStatus::EAS_Aggroed);
+				GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
+			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Dmg Sensed in OnTargetPerceptionUpdated NON SUCCESSFULY"));
+			// TODO StopAggro
+			//GetWorldTimerManager().SetTimer(StopAggroing_Timer, this, &ASAIController::StopAggroing, TimeToStopAggroing);
+			ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(Actor);
+			if (PlayerChar)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("stopped seeing lol how"));
+			}
+			
 		}
-	}*/
+	}
+
+	// IF AGGROED, RETURN
+	if (GetAIStatus() == EAIStatus::EAS_Aggroed) return;
+
+	// HEARING
+	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Hearing::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
+	{
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+			BB->SetValueAsBool(BBKey_IsInvestigating, true);
+			BB->SetValueAsVector(BBKey_TargetDestination, Stimulus.StimulusLocation);
+
+			SetAIStatus(EAIStatus::EAS_Ivestigating);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("stopped hearing lol how"));
+		}
+	}
+
+
+	// DAMAGE
+	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Damage::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
+	{
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(Actor);
+			if (PlayerChar)
+			{
+				UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+				BB->SetValueAsBool(BBKey_IsAggroed, true);
+				BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
+
+
+				SetAIStatus(EAIStatus::EAS_Aggroed);
+				GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
+			}
+		}
+	}
 }
 
 void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& UpdatedActors)
 {
-	for (int i = 0; i < UpdatedActors.Num(); i++)
+	/* for (int i = 0; i < UpdatedActors.Num(); i++)
 	{
 		AActor* UpdatedActor = UpdatedActors[i]; // Getting the actor to check
 		FActorPerceptionBlueprintInfo PerceptionInfo;
@@ -104,7 +164,9 @@ void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& U
 						BB->SetValueAsBool(BBKey_IsAggroed, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
 						BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
 
+						SetAIStatus(EAIStatus::EAS_Aggroed);
 						GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
+
 					}
 				}
 				else // Just stopped sensing NOTE THAT THIS IS CALLED EVEN IF ANOTHER SENSE HAS SENSED
@@ -124,6 +186,8 @@ void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& U
 					UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
 					BB->SetValueAsBool(BBKey_IsInvestigating, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
 					BB->SetValueAsVector(BBKey_TargetDestination, LastSensedStimuli[StimIndex].StimulusLocation);
+
+					SetAIStatus(EAIStatus::EAS_Ivestigating);
 				}
 
 			} // END if hearing sense
@@ -133,7 +197,6 @@ void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& U
 				// Dmg sense sense //
 				if (LastSensedStimuli[2].WasSuccessfullySensed())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("how tho"));
 					ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(TargetActor);
 					if (PlayerChar)
 					{
@@ -141,6 +204,8 @@ void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& U
 						BB->SetValueAsBool(BBKey_IsAggroed, LastSensedStimuli[StimIndex].WasSuccessfullySensed());
 						BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
 
+
+						SetAIStatus(EAIStatus::EAS_Aggroed);
 						GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
 					}
 				}
@@ -155,7 +220,7 @@ void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& U
 		}
 
 	}
-
+	*/
 }
 
 void ASAIController::StopAggroing()
@@ -163,6 +228,15 @@ void ASAIController::StopAggroing()
 	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
 	BB->SetValueAsBool(BBKey_IsAggroed, false);
 	BB->SetValueAsObject(BBKey_TargetActor, nullptr);
+
+	SetAIStatus(EAIStatus::EAS_Normal);
+}
+
+void ASAIController::SetAIStatus(EAIStatus NewAIStatus)
+{
+	AIStatus = NewAIStatus;
+
+	OnAIStatusChanged.Broadcast(NewAIStatus, this);
 }
 
 ACustomTargetPoint* ASAIController::GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime)
@@ -265,7 +339,13 @@ void ASAIController::SetOriginalLocationAndRotationBBValues()
 
 void ASAIController::OnDeath()
 {
+	SetAIStatus(EAIStatus::EAS_Dead);
 	GetBrainComponent()->StopLogic("AI Died");
+	if (AIPerceptionComp)
+	{
+		AIPerceptionComp->UnregisterComponent();
+		AIPerceptionComp->DestroyComponent();
+	}
 
 	OnUnPossess();
 }

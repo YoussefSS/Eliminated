@@ -14,6 +14,16 @@ UHealthComponent::UHealthComponent()
 }
 
 
+void UHealthComponent::TurnOnGodMode()
+{
+	bGodMode = true;
+
+	DefaultHealth = 9999999;
+	CurrentHealth = 9999999;
+
+	OnHealthChanged.Broadcast(this, CurrentHealth, 0, nullptr, nullptr, nullptr);
+}
+
 // Called when the game starts
 void UHealthComponent::BeginPlay()
 {

@@ -9,6 +9,21 @@
 
 #include "SAIController.generated.h"
 
+UENUM(BlueprintType) 
+enum class EAIStatus : uint8 
+{
+	EAS_Normal				UMETA(DisplayName = "Normal"),
+	EAS_Ivestigating		UMETA(DisplayName = "Ivestigating"),
+	EAS_Aggroed				UMETA(DisplayName = "Aggroed"),
+	EAS_Dead				UMETA(DisplayName = "Dead"),
+
+	EMS_MAX        UMETA(DisplayName = "DefaultMAX") 
+};
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAIStatusChanged, EAIStatus, NewStatus, ASAIController*, AffectedController);
+
+
 /**
  * 
  */
@@ -49,6 +64,10 @@ protected:
 	UFUNCTION()
 	void StopAggroing();
 
+	void SetAIStatus(EAIStatus NewAIStatus);
+
+	EAIStatus GetAIStatus() { return AIStatus; }
+
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
@@ -68,6 +87,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void OnDeath();
+
+	FOnAIStatusChanged OnAIStatusChanged;
 
 protected:
 
@@ -109,6 +130,9 @@ protected:
 
 	////////////////////////////////////////////////////////////////////////////////
 	// State
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
+	EAIStatus AIStatus = EAIStatus::EAS_Normal;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
 	FRotator OriginalRotation;

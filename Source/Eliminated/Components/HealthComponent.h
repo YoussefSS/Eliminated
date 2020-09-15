@@ -20,6 +20,11 @@ public:
 	int32 GetMaxHealth() { return DefaultHealth; }
 
 	int32 GetCurrentHealth() { return CurrentHealth; }
+
+
+	UFUNCTION(BlueprintCallable, Category = "Cheats")
+	void TurnOnGodMode();
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -30,6 +35,8 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Health")
 	float CurrentHealth;
 		
+	bool bGodMode = false;
+
 	UFUNCTION()
 	void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
