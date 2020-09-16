@@ -89,7 +89,7 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 			bCanSeePlayer = true;
 
 			// Investigate first
-			InvestigateLocation(Stimulus.StimulusLocation);
+			InvestigateLocation(Stimulus.StimulusLocation, 2.5);
 
 			// Then Aggro
 			if (!GetWorldTimerManager().IsTimerActive(StartAggroing_Timer)) // If start aggroing timer is active, meaning it has been used by DamageSense, so don't re do it
@@ -105,11 +105,15 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 		{
 			bCanSeePlayer = false;
 
-			// TODO StopAggro
 			if (GetAIStatus() == EAIStatus::EAS_Aggroed)
 			{
+				// Stop aggro
 				GetWorldTimerManager().SetTimer(StopAggroing_Timer, this, &ASAIController::StopAggroing, TimeToStopAggroing);
-				UE_LOG(LogTemp, Warning, TEXT("Stopped seeing"));
+
+				// Then investigate the last seen location
+				FTimerDelegate InvestigateDelegate;
+				InvestigateDelegate.BindUObject(this, &ASAIController::InvestigateLocation, LastKnownPlayerLocation, 1.f);
+				GetWorldTimerManager().SetTimer(StartInvestigating_Timer, InvestigateDelegate, TimeToStopAggroing+0.01, false);
 			}
 			
 
@@ -132,7 +136,7 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 		if (Stimulus.WasSuccessfullySensed())
 		{
 			// Investigate first
-			InvestigateLocation(Stimulus.StimulusLocation);
+			InvestigateLocation(Stimulus.StimulusLocation, 1);
 
 			// Then Aggro
 			FTimerDelegate AggroDelegate;
@@ -157,7 +161,7 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 		if (Stimulus.WasSuccessfullySensed())
 		{
 			// Investigate the sound, and let the BT stop the investigation when needed
-			InvestigateLocation(Stimulus.StimulusLocation);
+			InvestigateLocation(Stimulus.StimulusLocation, 2.5);
 
 			SetAIStatus(EAIStatus::EAS_Ivestigating);
 		}
@@ -213,13 +217,14 @@ void ASAIController::AggroOnActor(AActor* ActorToAggroOn)
 
 }
 
-void ASAIController::InvestigateLocation(FVector DestinationToInvestigate)
+void ASAIController::InvestigateLocation(FVector DestinationToInvestigate, float InvestigateAfterTime)
 {
 	SetAIStatus(EAIStatus::EAS_Ivestigating);
 
 	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
 	BB->SetValueAsBool(BBKey_IsInvestigating, true);
 	BB->SetValueAsVector(BBKey_TargetDestination, DestinationToInvestigate);
+	BB->SetValueAsFloat(BBKey_TimeToWaitBeforeInvestigating, InvestigateAfterTime);
 }
 
 void ASAIController::SetAIStatus(EAIStatus NewAIStatus)

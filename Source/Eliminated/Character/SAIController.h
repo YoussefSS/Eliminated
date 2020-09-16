@@ -75,7 +75,8 @@ protected:
 
 	void AggroOnActor(AActor* ActorToAggroOn);
 
-	void InvestigateLocation(FVector DestinationToInvestigate);
+	/** First look at the location, then wait @param: InvestigateAfterTime, then go to the location */
+	void InvestigateLocation(FVector DestinationToInvestigate, float InvestigateAfterTime);
 
 	//UFUNCTION()
 	//void StopInvestigating();
@@ -141,6 +142,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI| BlackBoardValues")
 	FName BBKey_IsInvestigating = "IsInvestigating";
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI| BlackBoardValues")
+	FName BBKey_TimeToWaitBeforeInvestigating = "TimeToWaitBeforeInvestigating";
+
 	// END Blackboard Keys
 	////////////////////////////////////////////////////////////////////////////////
 
@@ -177,6 +181,8 @@ protected:
 	FTimerHandle StartAggroing_Timer;
 
 	FTimerHandle StopAggroing_Timer;
+
+	FTimerHandle StartInvestigating_Timer;
 
 	//FTimerHandle StopInvestigating_Timer;
 };
