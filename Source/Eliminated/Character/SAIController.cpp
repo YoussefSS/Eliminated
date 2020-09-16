@@ -94,9 +94,17 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 			// Then Aggro
 			if (!GetWorldTimerManager().IsTimerActive(StartAggroing_Timer)) // If start aggroing timer is active, meaning it has been used by DamageSense, so don't re do it
 			{
+				// Time to start aggroing, based on the location of the player to AI
+				float MaxAggroAfterTime = 3;
+				if (SightConfig && GetPawn())
+				{
+					MaxAggroAfterTime *= FMath::Clamp(FVector::Distance(GetPawn()->GetActorLocation(), PlayerChar->GetActorLocation())  / (SightConfig->SightRadius),
+						0.f, MaxAggroAfterTime); // Location of player to AI divided by sight radius
+				}
+
 				FTimerDelegate AggroDelegate;
 				AggroDelegate.BindUObject(this, &ASAIController::TryStartAggroing, Actor, Stimulus);
-				GetWorldTimerManager().SetTimer(StartAggroing_Timer, AggroDelegate, 1.5, false);
+				GetWorldTimerManager().SetTimer(StartAggroing_Timer, AggroDelegate, MaxAggroAfterTime, false);
 			}
 
 
@@ -219,6 +227,7 @@ void ASAIController::AggroOnActor(AActor* ActorToAggroOn)
 
 void ASAIController::InvestigateLocation(FVector DestinationToInvestigate, float InvestigateAfterTime)
 {
+	StopAggroing();
 	SetAIStatus(EAIStatus::EAS_Ivestigating);
 
 	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
