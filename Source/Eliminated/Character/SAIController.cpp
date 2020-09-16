@@ -14,6 +14,7 @@
 #include "Eliminated\AI\CustomTargetPoint.h"
 #include "BrainComponent.h"
 #include "DrawDebugHelpers.h"
+#include "TimerManager.h"
 
 ASAIController::ASAIController()
 {
@@ -52,65 +53,77 @@ void ASAIController::BeginPlay()
 	SetAIStatus(EAIStatus::EAS_Normal);
 	if (AIPerceptionComp)
 	{
-		AIPerceptionComp->OnPerceptionUpdated.AddDynamic(this, &ASAIController::OnPerceptionUpdated);
+		//AIPerceptionComp->OnPerceptionUpdated.AddDynamic(this, &ASAIController::OnPerceptionUpdated);
 		AIPerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &ASAIController::OnTargetPerceptionUpdated);
 	}
 }
 
+void ASAIController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bCanSeePlayer && PlayerReference && PlayerReference->IsValidLowLevel())
+	{
+		LastKnownPlayerLocation = PlayerReference->GetActorLocation();
+	}
+}
 
 void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAIStimulus Stimulus)
 {
 	// ELSE ONLY works on sight
 	// NOTE that the else parts won't be called as the MaxAge is set to 0, which means never. 
 
+	if (GetAIStatus() == EAIStatus::EAS_Dead) return;
+	// No Need to do this logic if not playercharacter
+	ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(Actor);
+	if (!PlayerChar) return;
+	PlayerReference = PlayerChar;
+
+	GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
+
 	// SIGHT
 	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Sight::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(Actor);
-			if (PlayerChar)
-			{
-				UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-				BB->SetValueAsBool(BBKey_IsAggroed, true);
-				BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
+			bCanSeePlayer = true;
 
-				SetAIStatus(EAIStatus::EAS_Aggroed);
-				GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
+			// Investigate first
+			InvestigateLocation(Stimulus.StimulusLocation);
+
+			// Then Aggro
+			if (!GetWorldTimerManager().IsTimerActive(StartAggroing_Timer)) // If start aggroing timer is active, meaning it has been used by DamageSense, so don't re do it
+			{
+				FTimerDelegate AggroDelegate;
+				AggroDelegate.BindUObject(this, &ASAIController::TryStartAggroing, Actor, Stimulus);
+				GetWorldTimerManager().SetTimer(StartAggroing_Timer, AggroDelegate, 1.5, false);
 			}
+
+
 		}
 		else
 		{
+			bCanSeePlayer = false;
+
 			// TODO StopAggro
-			//GetWorldTimerManager().SetTimer(StopAggroing_Timer, this, &ASAIController::StopAggroing, TimeToStopAggroing);
-			ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(Actor);
-			if (PlayerChar)
+			if (GetAIStatus() == EAIStatus::EAS_Aggroed)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("stopped seeing lol how"));
+				GetWorldTimerManager().SetTimer(StopAggroing_Timer, this, &ASAIController::StopAggroing, TimeToStopAggroing);
+				UE_LOG(LogTemp, Warning, TEXT("Stopped seeing"));
 			}
 			
+
 		}
+
+		return;
 	}
 
-	// IF AGGROED, RETURN
+
+
+
+	// If aggroed, return as there is nothing to do ..
+	// .. IMPORTANT, if going to handle else in hearing or dmg logic, this needs to be changed
 	if (GetAIStatus() == EAIStatus::EAS_Aggroed) return;
-
-	// HEARING
-	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Hearing::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
-	{
-		if (Stimulus.WasSuccessfullySensed())
-		{
-			UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-			BB->SetValueAsBool(BBKey_IsInvestigating, true);
-			BB->SetValueAsVector(BBKey_TargetDestination, Stimulus.StimulusLocation);
-
-			SetAIStatus(EAIStatus::EAS_Ivestigating);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("stopped hearing lol how"));
-		}
-	}
 
 
 	// DAMAGE
@@ -118,24 +131,226 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(Actor);
-			if (PlayerChar)
-			{
-				UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-				BB->SetValueAsBool(BBKey_IsAggroed, true);
-				BB->SetValueAsObject(BBKey_TargetActor, PlayerChar);
+			// Investigate first
+			InvestigateLocation(Stimulus.StimulusLocation);
 
-
-				SetAIStatus(EAIStatus::EAS_Aggroed);
-				GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
-			}
+			// Then Aggro
+			FTimerDelegate AggroDelegate;
+			AggroDelegate.BindUObject(this, &ASAIController::TryStartAggroing, Actor, Stimulus);
+			GetWorldTimerManager().SetTimer(StartAggroing_Timer, AggroDelegate, 0.6, false);
 		}
+
+		return;
+	}
+
+
+
+
+
+
+
+
+
+	// HEARING
+	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Hearing::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
+	{
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			// Investigate the sound, and let the BT stop the investigation when needed
+			InvestigateLocation(Stimulus.StimulusLocation);
+
+			SetAIStatus(EAIStatus::EAS_Ivestigating);
+		}
+		else
+		{
+			// If you are going to handle this, then don't return with AIStatus is aggroed
+			UE_LOG(LogTemp, Warning, TEXT("stopped hearing lol how"));
+		}
+
+		return;
+	}
+
+
+
+}
+
+
+void ASAIController::TryStartAggroing(AActor* ActorToAggroOn, FAIStimulus Stimulus)
+{
+	if (bCanSeePlayer)
+	{
+		GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
+
+		AggroOnActor(ActorToAggroOn);
+	}
+	/*else
+	{
+		InvestigateLocation(LastKnownPlayerLocation);
+	}*/
+	
+
+}
+
+void ASAIController::StopAggroing()
+{
+	SetAIStatus(EAIStatus::EAS_Normal);
+
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsBool(BBKey_IsAggroed, false);
+	BB->SetValueAsObject(BBKey_TargetActor, nullptr);
+}
+
+void ASAIController::AggroOnActor(AActor* ActorToAggroOn)
+{
+	StopInvestigating(); // Stop investigating anything, and aggro. Without this, when stopping aggroing after a while the AI will investigate something old
+
+	SetAIStatus(EAIStatus::EAS_Aggroed);
+
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsBool(BBKey_IsAggroed, true);
+	BB->SetValueAsObject(BBKey_TargetActor, ActorToAggroOn);
+
+
+}
+
+void ASAIController::InvestigateLocation(FVector DestinationToInvestigate)
+{
+	SetAIStatus(EAIStatus::EAS_Ivestigating);
+
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsBool(BBKey_IsInvestigating, true);
+	BB->SetValueAsVector(BBKey_TargetDestination, DestinationToInvestigate);
+}
+
+void ASAIController::SetAIStatus(EAIStatus NewAIStatus)
+{
+	AIStatus = NewAIStatus;
+
+	OnAIStatusChanged.Broadcast(NewAIStatus, this);
+}
+
+ACustomTargetPoint* ASAIController::GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime)
+{
+	CurrentTargetPointIndex++;
+
+	TArray<ACustomTargetPoint*> PatrolPoints;
+	AAICharacter* OwnerAI = Cast<AAICharacter>(GetPawn());
+	if (OwnerAI)
+	{
+		PatrolPoints = OwnerAI->GetPatrolPoints();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASAIController::GetNextTargetPoint: GetPawn is nullptr"));
+		return nullptr;
+	}
+
+	if (CurrentTargetPointIndex >= PatrolPoints.Num())
+	{
+		CurrentTargetPointIndex = 0;
+	}
+
+	if (PatrolPoints[CurrentTargetPointIndex])
+	{
+		OutLocation = PatrolPoints[CurrentTargetPointIndex]->GetActorLocation();
+		OutWaitTime = PatrolPoints[CurrentTargetPointIndex]->GetSecondsToStay();
+	}
+	else
+	{
+		OutLocation = FVector::ZeroVector;
+		OutWaitTime = 0.f;
+	}
+
+	return PatrolPoints[CurrentTargetPointIndex];
+}
+
+void ASAIController::StopInvestigating()
+{
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsBool(BBKey_IsInvestigating, false);
+
+	if (GetAIStatus() != EAIStatus::EAS_Aggroed)
+	{
+		SetAIStatus(EAIStatus::EAS_Normal);
 	}
 }
 
+void ASAIController::SetIsPatrolGuardBBValue()
+{
+	bool bIsPatrol = false;
+	AAICharacter* OwnerAI = Cast<AAICharacter>(GetPawn());
+	if (OwnerAI)
+	{
+		bIsPatrol = OwnerAI->IsPatrol();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASAIController::SetIsPatrolGuardBBValue: GetPawn is nullptr"));
+		return;
+	}
+
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsBool(BBKey_IsPatrolGuard, bIsPatrol);
+}
+
+void ASAIController::GetNextPatrolPointAndSetBBValues()
+{
+	bool bIsPatrol = false;
+	AAICharacter* OwnerAI = Cast<AAICharacter>(GetPawn());
+	if (OwnerAI)
+	{
+		bIsPatrol = OwnerAI->IsPatrol();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASAIController::GetNextPatrolPointAndSetBBValues: GetOwner is nullptr"));
+		return;
+	}
+
+	if (bIsPatrol)
+	{
+		FVector OutLocation;
+		float OutWaitTime;
+		GetNextTargetPoint(OutLocation, OutWaitTime);
+
+		UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+		BB->SetValueAsVector(BBKey_PatrolPointDestination, OutLocation);
+		BB->SetValueAsFloat(BBKey_TimeToWaitAtPatrolPoint, OutWaitTime);
+	}
+}
+
+void ASAIController::SetOriginalLocationAndRotationBBValues()
+{
+	if (!GetPawn())
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASAIController::SetOriginalLocationAndRotationBBValues: GetOwner is nullptr"));
+		return;
+	}
+
+	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
+	BB->SetValueAsVector(BBKey_OriginalLocation, GetPawn()->GetActorLocation());
+	BB->SetValueAsRotator(BBKey_OriginalRotation, GetPawn()->GetActorRotation());
+}
+
+void ASAIController::OnDeath()
+{
+	SetAIStatus(EAIStatus::EAS_Dead);
+	GetBrainComponent()->StopLogic("AI Died");
+	if (AIPerceptionComp)
+	{
+		AIPerceptionComp->UnregisterComponent();
+		AIPerceptionComp->DestroyComponent();
+	}
+
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	OnUnPossess();
+}
+
+/*
 void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& UpdatedActors)
 {
-	/* for (int i = 0; i < UpdatedActors.Num(); i++)
+	for (int i = 0; i < UpdatedActors.Num(); i++)
 	{
 		AActor* UpdatedActor = UpdatedActors[i]; // Getting the actor to check
 		FActorPerceptionBlueprintInfo PerceptionInfo;
@@ -220,132 +435,5 @@ void ASAIController::OnPerceptionUpdated_Implementation(const TArray<AActor*>& U
 		}
 
 	}
-	*/
 }
-
-void ASAIController::StopAggroing()
-{
-	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-	BB->SetValueAsBool(BBKey_IsAggroed, false);
-	BB->SetValueAsObject(BBKey_TargetActor, nullptr);
-
-	SetAIStatus(EAIStatus::EAS_Normal);
-}
-
-void ASAIController::SetAIStatus(EAIStatus NewAIStatus)
-{
-	AIStatus = NewAIStatus;
-
-	OnAIStatusChanged.Broadcast(NewAIStatus, this);
-}
-
-ACustomTargetPoint* ASAIController::GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime)
-{
-	CurrentTargetPointIndex++;
-
-	TArray<ACustomTargetPoint*> PatrolPoints;
-	AAICharacter* OwnerAI = Cast<AAICharacter>(GetPawn());
-	if (OwnerAI)
-	{
-		PatrolPoints = OwnerAI->GetPatrolPoints();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ASAIController::GetNextTargetPoint: GetPawn is nullptr"));
-		return nullptr;
-	}
-
-	if (CurrentTargetPointIndex >= PatrolPoints.Num())
-	{
-		CurrentTargetPointIndex = 0;
-	}
-
-	if (PatrolPoints[CurrentTargetPointIndex])
-	{
-		OutLocation = PatrolPoints[CurrentTargetPointIndex]->GetActorLocation();
-		OutWaitTime = PatrolPoints[CurrentTargetPointIndex]->GetSecondsToStay();
-	}
-	else
-	{
-		OutLocation = FVector::ZeroVector;
-		OutWaitTime = 0.f;
-	}
-
-	return PatrolPoints[CurrentTargetPointIndex];
-}
-
-void ASAIController::StopInvestigatingSound()
-{
-	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-	BB->SetValueAsBool(BBKey_IsInvestigating, false);
-}
-
-void ASAIController::SetIsPatrolGuardBBValue()
-{
-	bool bIsPatrol = false;
-	AAICharacter* OwnerAI = Cast<AAICharacter>(GetPawn());
-	if (OwnerAI)
-	{
-		bIsPatrol = OwnerAI->IsPatrol();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ASAIController::SetIsPatrolGuardBBValue: GetOwner is nullptr"));
-		return;
-	}
-
-	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-	BB->SetValueAsBool(BBKey_IsPatrolGuard, bIsPatrol);
-}
-
-void ASAIController::GetNextPatrolPointAndSetBBValues()
-{
-	bool bIsPatrol = false;
-	AAICharacter* OwnerAI = Cast<AAICharacter>(GetPawn());
-	if (OwnerAI)
-	{
-		bIsPatrol = OwnerAI->IsPatrol();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ASAIController::GetNextPatrolPointAndSetBBValues: GetOwner is nullptr"));
-		return;
-	}
-
-	if (bIsPatrol)
-	{
-		FVector OutLocation;
-		float OutWaitTime;
-		GetNextTargetPoint(OutLocation, OutWaitTime);
-
-		UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-		BB->SetValueAsVector(BBKey_TargetDestination, OutLocation);
-		BB->SetValueAsFloat(BBKey_TimeToWaitAtPatrolPoint, OutWaitTime);
-	}
-}
-
-void ASAIController::SetOriginalLocationAndRotationBBValues()
-{
-	if (!GetPawn())
-	{
-		UE_LOG(LogTemp, Error, TEXT("ASAIController::SetOriginalLocationAndRotationBBValues: GetOwner is nullptr"));
-		return;
-	}
-
-	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
-	BB->SetValueAsVector(BBKey_OriginalLocation, GetPawn()->GetActorLocation());
-	BB->SetValueAsRotator(BBKey_OriginalRotation, GetPawn()->GetActorRotation());
-}
-
-void ASAIController::OnDeath()
-{
-	SetAIStatus(EAIStatus::EAS_Dead);
-	GetBrainComponent()->StopLogic("AI Died");
-	if (AIPerceptionComp)
-	{
-		AIPerceptionComp->UnregisterComponent();
-		AIPerceptionComp->DestroyComponent();
-	}
-
-	OnUnPossess();
-}
+*/

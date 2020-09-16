@@ -27,6 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAIStatusChanged, EAIStatus, NewS
 /**
  * 
  */
+class ASPlayerCharacter;
 UCLASS()
 class ELIMINATED_API ASAIController : public AAIController
 {
@@ -38,6 +39,11 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+public:
+	virtual void Tick(float DeltaTime) override;
+
+protected:
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI| Perception")
@@ -55,26 +61,39 @@ protected:
 
 protected:
 
-	UFUNCTION(BlueprintNativeEvent, Category = "AI| Perception")
-	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+	//UFUNCTION(BlueprintNativeEvent, Category = "AI| Perception")
+	//void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "AI| Perception")
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
 	UFUNCTION()
+	void TryStartAggroing(AActor* ActorToAggroOn, FAIStimulus Stimulus);
+
+	UFUNCTION()
 	void StopAggroing();
+
+	void AggroOnActor(AActor* ActorToAggroOn);
+
+	void InvestigateLocation(FVector DestinationToInvestigate);
+
+	//UFUNCTION()
+	//void StopInvestigating();
 
 	void SetAIStatus(EAIStatus NewAIStatus);
 
 	EAIStatus GetAIStatus() { return AIStatus; }
+
+	
 
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	class ACustomTargetPoint* GetNextTargetPoint(FVector& OutLocation, float& OutWaitTime);
 
+	/** Immediately stop investigation */
 	UFUNCTION(BlueprintCallable, Category = "AI")
-	void StopInvestigatingSound();
+	void StopInvestigating();
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetIsPatrolGuardBBValue();
@@ -99,10 +118,13 @@ protected:
 	FName BBKey_IsPatrolGuard = "IsPatrolGuard";
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI| BlackBoardValues")
-	FName BBKey_TargetDestination = "TargetDestination";
+	FName BBKey_PatrolPointDestination = "PatrolPointDestination";
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI| BlackBoardValues")
 	FName BBKey_TimeToWaitAtPatrolPoint = "TimeToWaitAtPatrolPoint";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI| BlackBoardValues")
+	FName BBKey_TargetDestination = "TargetDestination";
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI| BlackBoardValues")
 	FName BBKey_OriginalLocation = "OriginalLocation";
@@ -123,6 +145,9 @@ protected:
 	////////////////////////////////////////////////////////////////////////////////
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
+	float TimeToStartAggroing = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
 	float TimeToStopAggroing = 3.f;
 
 
@@ -131,14 +156,27 @@ protected:
 	////////////////////////////////////////////////////////////////////////////////
 	// State
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI| State")
 	EAIStatus AIStatus = EAIStatus::EAS_Normal;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI| State")
+	bool bCanSeePlayer = false;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI| State")
+	FVector LastKnownPlayerLocation = FVector::ZeroVector;
+
+	UPROPERTY(Transient)
+	ASPlayerCharacter* PlayerReference;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI| State")
 	FRotator OriginalRotation;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI| State")
 	int32 CurrentTargetPointIndex = -1;
 
+	FTimerHandle StartAggroing_Timer;
+
 	FTimerHandle StopAggroing_Timer;
+
+	//FTimerHandle StopInvestigating_Timer;
 };
