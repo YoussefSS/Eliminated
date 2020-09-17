@@ -99,10 +99,7 @@ void AWeapon::Fire()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 	}
-	if (GetOwner()->IsA(ASPlayerCharacter::StaticClass()))
-	{
-		UAISense_Hearing::ReportNoiseEvent(this, GetActorLocation(), WeaponSoundLoudness, GetOwner(), WeaponSoundMaxRange, NAME_None);
-	}
+	UAISense_Hearing::ReportNoiseEvent(this, GetActorLocation(), WeaponSoundLoudness, GetOwner(), WeaponSoundMaxRange, NAME_None);
 	
 
 	// Play Muzzle particle effect

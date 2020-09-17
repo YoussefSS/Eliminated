@@ -74,14 +74,65 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 	// NOTE that the else parts won't be called as the MaxAge is set to 0, which means never. 
 
 	if (GetAIStatus() == EAIStatus::EAS_Dead) return;
-	// No Need to do this logic if not playercharacter
+	if (Actor == GetPawn()) return; // Don't do logic if I did triggered this function
+
 	ASPlayerCharacter* PlayerChar = Cast<ASPlayerCharacter>(Actor);
+
+	/*************/
+	/** HEARING **/
+	/*************/
+	// We want to hear all sounds, even weapon shots coming from allies
+	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Hearing::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
+	{
+		if (GetAIStatus() == EAIStatus::EAS_Aggroed) return;
+
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			// We want to check if the sound is made by the player, if it is, go to it, if not, don't keep switching back and forth between the player and AI
+
+			if (GetAIStatus() == EAIStatus::EAS_Ivestigating) // If already investigating
+			{
+				if (PlayerChar) // If the sound was made by the player
+				{
+					bInvestigatingSoundMadeByPlayer = true;
+					InvestigateLocation(Stimulus.StimulusLocation, 2.5);
+				}
+				else
+				{
+					if (!bInvestigatingSoundMadeByPlayer) // If not investigating a sound made by the player, go to the new sound
+					{
+						InvestigateLocation(Stimulus.StimulusLocation, 2.5);
+					}
+					// Do nothing, keep going towards the players last made sound
+				}
+			}
+			else
+			{
+				InvestigateLocation(Stimulus.StimulusLocation, 2.5);
+				if (PlayerChar)
+				{
+					bInvestigatingSoundMadeByPlayer = true;
+				}
+			}
+
+			
+		}
+
+		return;
+	}
+
+
+	// No Need to do seeing or damage logic if not playercharacter
+	
 	if (!PlayerChar) return;
 	PlayerReference = PlayerChar;
 
 	GetWorldTimerManager().ClearTimer(StopAggroing_Timer);
+	
 
-	// SIGHT
+	/************/
+	/** SEEING **/
+	/************/
 	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Sight::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
 	{
 		if (Stimulus.WasSuccessfullySensed())
@@ -131,14 +182,14 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 	}
 
 
-
-
 	// If aggroed, return as there is nothing to do ..
 	// .. IMPORTANT, if going to handle else in hearing or dmg logic, this needs to be changed
 	if (GetAIStatus() == EAIStatus::EAS_Aggroed) return;
 
 
-	// DAMAGE
+	/************/
+	/** DAMAGE **/
+	/************/
 	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Damage::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
 	{
 		if (Stimulus.WasSuccessfullySensed())
@@ -154,35 +205,6 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 
 		return;
 	}
-
-
-
-
-
-
-
-
-
-	// HEARING
-	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Hearing::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
-	{
-		if (Stimulus.WasSuccessfullySensed())
-		{
-			// Investigate the sound, and let the BT stop the investigation when needed
-			InvestigateLocation(Stimulus.StimulusLocation, 2.5);
-
-			SetAIStatus(EAIStatus::EAS_Ivestigating);
-		}
-		else
-		{
-			// If you are going to handle this, then don't return with AIStatus is aggroed
-			UE_LOG(LogTemp, Warning, TEXT("stopped hearing lol how"));
-		}
-
-		return;
-	}
-
-
 
 }
 
@@ -210,6 +232,8 @@ void ASAIController::StopAggroing()
 	UBlackboardComponent* BB = UAIBlueprintHelperLibrary::GetBlackboard(this);
 	BB->SetValueAsBool(BBKey_IsAggroed, false);
 	BB->SetValueAsObject(BBKey_TargetActor, nullptr);
+
+	bInvestigatingSoundMadeByPlayer = false;
 }
 
 void ASAIController::AggroOnActor(AActor* ActorToAggroOn)
@@ -287,6 +311,8 @@ void ASAIController::StopInvestigating()
 	{
 		SetAIStatus(EAIStatus::EAS_Normal);
 	}
+
+	bInvestigatingSoundMadeByPlayer = false;
 }
 
 void ASAIController::SetIsPatrolGuardBBValue()
