@@ -27,6 +27,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AnimationProperties")
 	void UpdateAnimationProperties();
 
+	UFUNCTION(BlueprintCallable, Category = "Sound")
+	void PlayFootstepSound();
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationProperties")
     class ASCharacterBase* SCharacterBase;
 

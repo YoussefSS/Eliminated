@@ -48,3 +48,17 @@ void UPlayerAnimInstance::UpdateAnimationProperties()
 
 
 }
+
+void UPlayerAnimInstance::PlayFootstepSound()
+{
+	if (SCharacterBase)
+	{
+		//float VolumeToPlayAt;
+		SCharacterBase->PlayFootstepSound();
+	}
+	else
+	{
+		SCharacterBase = Cast<ASCharacterBase>(TryGetPawnOwner());
+	}
+	
+}

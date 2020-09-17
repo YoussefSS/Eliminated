@@ -37,7 +37,6 @@ public:
 	class UCameraComponent* Camera;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	class USphereComponent* PunchSphereComponent;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	class UHealthComponent* HealthComponent;
 
@@ -112,6 +111,9 @@ public:
 	void StartFire();
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void StopFire();
+
+	UFUNCTION(BlueprintCallable, Category = "Sound")
+	void PlayFootstepSound();
 
 public:	
 	// Called every frame
@@ -247,6 +249,8 @@ protected:
 
 	////////////////////////////////////////////////////////
 
+
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "540.0", UIMin = "0.0", UIMax = "540.0"), Category = "Movement")
 	float CharacterRotationRateWalk = 540.0f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "540.0", UIMin = "0.0", UIMax = "540.0"), Category = "Movement")
@@ -276,6 +280,11 @@ protected:
 	float WalkMultiplier_Crouched = 0.1f;
 
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement| Sound")
+	USoundCue* FootstepCue;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0"), Category = "Movement| Sound")
+	float FootstepsVolume = 1.f;
 
 
 

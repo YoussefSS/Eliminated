@@ -98,6 +98,11 @@ void ASCharacterBase::BeginPlay()
 		GM->OnEnemyDied.AddDynamic(this, &ASCharacterBase::OnEnemyDied);
 	}
 
+	if (FootstepCue)
+	{
+		FootstepCue->VolumeMultiplier = FootstepsVolume;
+	}
+
 	OnTakePointDamage.AddDynamic(this, &ASCharacterBase::HandleTakePointDamage);
 }
 
@@ -262,6 +267,20 @@ void ASCharacterBase::StopFire()
 	{
 		CurrentWeapon->StopFire();
 	}
+}
+
+void ASCharacterBase::PlayFootstepSound()
+{
+	if (FootstepCue)
+	{
+		float Volume =
+			UKismetMathLibrary::MapRangeClamped(GetVelocity().Size(), 10.f, 600.f, 0.f, 1.f)
+			* IsCrouched() ? 0.1f : 1.f
+			* bIsSprinting ? 1.f : 0.3f;
+
+		UGameplayStatics::PlaySoundAtLocation(this, FootstepCue, GetActorLocation(), Volume);
+	}
+	
 }
 
 void ASCharacterBase::TryReload()
