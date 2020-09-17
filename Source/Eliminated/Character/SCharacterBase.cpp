@@ -17,6 +17,7 @@
 #include "Kismet\KismetMathLibrary.h"
 #include "Sound\SoundCue.h"
 #include "Eliminated\EliminatedGameModeBase.h"
+#include "Perception\AISense_Hearing.h"
 
 // Sets default values
 ASCharacterBase::ASCharacterBase()
@@ -279,6 +280,25 @@ void ASCharacterBase::PlayFootstepSound()
 			* bIsSprinting ? 1.f : 0.3f;
 
 		UGameplayStatics::PlaySoundAtLocation(this, FootstepCue, GetActorLocation(), Volume);
+
+		if (bReportFootstepNoiseEvent)
+		{
+			float NoiseRange;
+
+			if (bIsSprinting)
+			{
+				NoiseRange = SprintFootstepNoise;
+			}
+			else if (bIsCrouching)
+			{
+				NoiseRange = CrouchFootstepNoise;
+			}
+			else // Normal
+			{
+				NoiseRange = WalkFootstepNoise;
+			}
+			UAISense_Hearing::ReportNoiseEvent(this, GetActorLocation(), 1, this, NoiseRange, NAME_None);
+		}
 	}
 	
 }

@@ -280,12 +280,23 @@ protected:
 	float WalkMultiplier_Crouched = 0.1f;
 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement| Sound")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement| Sound")
 	USoundCue* FootstepCue;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0"), Category = "Movement| Sound")
 	float FootstepsVolume = 1.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.0"), Category = "Movement| Sound| Noise Reporting")
+	bool bReportFootstepNoiseEvent = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "bReportFootstepNoiseEvent", ClampMin = "0.0"), Category = "Movement| Sound| Noise Reporting")
+	float CrouchFootstepNoise = 100.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "bReportFootstepNoiseEvent", ClampMin = "0.0"), Category = "Movement| Sound| Noise Reporting")
+	float WalkFootstepNoise = 250.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "bReportFootstepNoiseEvent", ClampMin = "0.0"), Category = "Movement| Sound| Noise Reporting")
+	float SprintFootstepNoise = 600.f;
 
 
 protected:
