@@ -90,16 +90,6 @@ void AAICharacter::StopAimDownSights()
 {
 	Super::StopAimDownSights();
 
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1,
-			2, //Duration
-			FColor::Cyan,
-			FString::Printf(TEXT("                     Stopped aimind down sights")),
-			true,
-			FVector2D(1, 1)
-		);
-	}
 }
 
 void AAICharacter::Die()

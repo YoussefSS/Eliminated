@@ -167,7 +167,7 @@ protected:
 	bool bCanSeePlayer = false;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI| State")
-	bool bInvestigatingSoundMadeByPlayer = false;
+	bool bInvestigatingSightOrSoundMadeByPlayer = false;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "AI| State")
 	FVector LastKnownPlayerLocation = FVector::ZeroVector;

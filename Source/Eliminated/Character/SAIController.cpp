@@ -82,10 +82,8 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 	/** HEARING **/
 	/*************/
 	// We want to hear all sounds, even weapon shots coming from allies
-	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Hearing::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)))
+	if (UKismetMathLibrary::ClassIsChildOf(UAISense_Hearing::StaticClass(), UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus)) && (GetAIStatus() != EAIStatus::EAS_Aggroed))
 	{
-		if (GetAIStatus() == EAIStatus::EAS_Aggroed) return;
-
 		if (Stimulus.WasSuccessfullySensed())
 		{
 			// We want to check if the sound is made by the player, if it is, go to it, if not, don't keep switching back and forth between the player and AI
@@ -94,12 +92,12 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 			{
 				if (PlayerChar) // If the sound was made by the player
 				{
-					bInvestigatingSoundMadeByPlayer = true;
+					bInvestigatingSightOrSoundMadeByPlayer = true;
 					InvestigateLocation(Stimulus.StimulusLocation, 2.5);
 				}
 				else
 				{
-					if (!bInvestigatingSoundMadeByPlayer) // If not investigating a sound made by the player, go to the new sound
+					if (!bInvestigatingSightOrSoundMadeByPlayer) // If not investigating a sound made by the player, go to the new sound
 					{
 						InvestigateLocation(Stimulus.StimulusLocation, 2.5);
 					}
@@ -111,7 +109,7 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 				InvestigateLocation(Stimulus.StimulusLocation, 2.5);
 				if (PlayerChar)
 				{
-					bInvestigatingSoundMadeByPlayer = true;
+					bInvestigatingSightOrSoundMadeByPlayer = true;
 				}
 			}
 
@@ -137,6 +135,7 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
+			bInvestigatingSightOrSoundMadeByPlayer = true;
 			bCanSeePlayer = true;
 
 			// Investigate first
@@ -233,7 +232,7 @@ void ASAIController::StopAggroing()
 	BB->SetValueAsBool(BBKey_IsAggroed, false);
 	BB->SetValueAsObject(BBKey_TargetActor, nullptr);
 
-	bInvestigatingSoundMadeByPlayer = false;
+	bInvestigatingSightOrSoundMadeByPlayer = false;
 }
 
 void ASAIController::AggroOnActor(AActor* ActorToAggroOn)
@@ -312,7 +311,7 @@ void ASAIController::StopInvestigating()
 		SetAIStatus(EAIStatus::EAS_Normal);
 	}
 
-	bInvestigatingSoundMadeByPlayer = false;
+	bInvestigatingSightOrSoundMadeByPlayer = false;
 }
 
 void ASAIController::SetIsPatrolGuardBBValue()
