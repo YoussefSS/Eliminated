@@ -193,6 +193,8 @@ void ASAIController::OnTargetPerceptionUpdated_Implementation(AActor* Actor, FAI
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
+			bInvestigatingSightOrSoundMadeByPlayer = true;
+
 			// Investigate first
 			InvestigateLocation(Stimulus.StimulusLocation, 1);
 
