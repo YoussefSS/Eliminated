@@ -58,7 +58,7 @@ void ASPlayerCharacter::OnEnemyDied(AActor* DeadEnemy, int32 RemainingEnemies)
 	}
 }
 
-bool ASPlayerCharacter::CanBeSeenFrom(const FVector& ObserverLocation, FVector& OutSeenLocation, int32& NumberOfLoSChecksPerformed, float& OutSightStrength, const AActor* IgnoreActor /*= NULL*/) const
+bool ASPlayerCharacter::CanBeSeenFrom(const FVector& ObserverLocation, FVector& OutSeenLocation, int32& NumberOfLoSChecksPerformed, float& OutSightStrength, const AActor* IgnoreActor /*= NULL*/, const bool* bWasVisible /*= nullptr*/, int32* UserData /*= nullptr*/) const
 {
 	static const FName NAME_AILineOfSight = FName(TEXT("TestPawnLineOfSight")); // IDK
 

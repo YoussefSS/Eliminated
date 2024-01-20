@@ -31,7 +31,7 @@ protected:
 public:
 
 	/** Overriding the CanBeSeeFrom function to specify locations on the characters body that the AI can see */
-	virtual bool CanBeSeenFrom(const FVector& ObserverLocation, FVector& OutSeenLocation, int32& NumberOfLoSChecksPerformed, float& OutSightStrength, const AActor* IgnoreActor = NULL) const override;
+	virtual bool CanBeSeenFrom(const FVector& ObserverLocation, FVector& OutSeenLocation, int32& NumberOfLoSChecksPerformed, float& OutSightStrength, const AActor* IgnoreActor = NULL, const bool* bWasVisible = nullptr, int32* UserData = nullptr) const override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ForAI")
 	TArray<FName> SightSocketNames;

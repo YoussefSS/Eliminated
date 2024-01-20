@@ -224,7 +224,7 @@ protected:
 	class UAnimMontage* PistolMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Pistol")
-	TSubclassOf<UCameraShake> PistolFireCamShake;
+	TSubclassOf<class UMatineeCameraShake> PistolFireCamShake;
 
 	////////////////////////////////////////////////////////
 
@@ -245,7 +245,7 @@ protected:
 	class UAnimMontage* RifleMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon| Rifle")
-	TSubclassOf<UCameraShake> RifleFireCamShake;
+	TSubclassOf<UMatineeCameraShake> RifleFireCamShake;
 
 	////////////////////////////////////////////////////////
 

@@ -141,7 +141,7 @@ void AWeapon::Fire()
 		{
 			// TODO: Do another line trace to check if there is something in between the weapon and the hit location, NO NEED
 			
-			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+			EPhysicalSurface SurfaceType = UGameplayStatics::GetSurfaceType(Hit);
 
 			// Hit logic here
 			AActor* HitActor = Hit.GetActor();

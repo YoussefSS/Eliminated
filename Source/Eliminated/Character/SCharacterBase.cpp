@@ -18,6 +18,7 @@
 #include "Sound\SoundCue.h"
 #include "Eliminated\EliminatedGameModeBase.h"
 #include "Perception\AISense_Hearing.h"
+#include "MatineeCameraShake.h"
 
 // Sets default values
 ASCharacterBase::ASCharacterBase()
